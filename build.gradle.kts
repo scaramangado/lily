@@ -12,6 +12,9 @@ repositories {
 dependencies {
 
     api("org.reflections:reflections:0.9.11")
+    
+    api("org.slf4j:slf4j-api:1.7.25")
+    api("org.slf4j:slf4j-simple:1.7.25")
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.3.2")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.3.2")
