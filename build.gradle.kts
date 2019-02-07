@@ -11,8 +11,12 @@ repositories {
 
 dependencies {
 
-    api("org.reflections:reflections:0.9.11")
-    
+    api("org.springframework.boot:spring-boot-starter:2.1.2.RELEASE")
+
+    implementation("org.reflections:reflections:0.9.11")
+
+    annotationProcessor("org.projectlombok:lombok:1.18.4")
+
     api("org.slf4j:slf4j-api:1.7.25")
     api("org.slf4j:slf4j-simple:1.7.25")
 
