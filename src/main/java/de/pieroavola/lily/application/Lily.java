@@ -1,7 +1,6 @@
 package de.pieroavola.lily.application;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.env.Environment;
@@ -16,9 +15,8 @@ import java.nio.file.Paths;
 /**
  * Class used to bootstrap a Spring Boot based Lily application.
  */
+@Slf4j
 public class Lily {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(Lily.class);
 
     private Lily() { }
 

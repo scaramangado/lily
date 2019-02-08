@@ -3,12 +3,11 @@ package de.pieroavola.lily.application;
 import de.pieroavola.lily.annotations.LilyCommand;
 import de.pieroavola.lily.annotations.LilyModule;
 import de.pieroavola.lily.exceptions.LilyRuntimeException;
+import lombok.extern.slf4j.Slf4j;
 import org.reflections.Reflections;
 import org.reflections.scanners.MethodAnnotationsScanner;
 import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -17,11 +16,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+@Slf4j
 final class LilyAnnotationProcessor {
 
     private LilyAnnotationProcessor() { }
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(LilyAnnotationProcessor.class);
 
     static Map<String, Method> getAllLilyCommands(String rootPackage) {
 
