@@ -133,3 +133,4 @@ gradle-app.setting
 ### Test App ###
 
 /src/main/java/test/**
+/src/main/resources/application.yaml
