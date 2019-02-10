@@ -1,7 +1,7 @@
-package de.pieroavola.lily.testmodules;
+package de.pieroavola.lily.core.testmodules;
 
-import de.pieroavola.lily.annotations.LilyCommand;
-import de.pieroavola.lily.annotations.LilyModule;
+import de.pieroavola.lily.core.annotations.LilyCommand;
+import de.pieroavola.lily.core.annotations.LilyModule;
 
 @LilyModule
 public class ValidLilyCommands {

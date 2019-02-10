@@ -1,4 +1,4 @@
-package de.pieroavola.lily.exceptions;
+package de.pieroavola.lily.core.exceptions;
 
 /**
  * The general purpose runtime exception used by Lily classes.

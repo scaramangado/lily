@@ -1,8 +1,8 @@
-package de.pieroavola.lily.application;
+package de.pieroavola.lily.core.application;
 
-import de.pieroavola.lily.annotations.LilyCommand;
-import de.pieroavola.lily.annotations.LilyModule;
-import de.pieroavola.lily.exceptions.LilyRuntimeException;
+import de.pieroavola.lily.core.annotations.LilyCommand;
+import de.pieroavola.lily.core.annotations.LilyModule;
+import de.pieroavola.lily.core.exceptions.LilyRuntimeException;
 import lombok.extern.slf4j.Slf4j;
 import org.reflections.Reflections;
 import org.reflections.scanners.MethodAnnotationsScanner;

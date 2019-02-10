@@ -1,7 +1,7 @@
-package de.pieroavola.lily.application;
+package de.pieroavola.lily.core.application;
 
-import de.pieroavola.lily.annotations.LilyModule;
-import de.pieroavola.lily.communication.Dispatcher;
+import de.pieroavola.lily.core.annotations.LilyModule;
+import de.pieroavola.lily.core.communication.Dispatcher;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -11,7 +11,6 @@ import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Component

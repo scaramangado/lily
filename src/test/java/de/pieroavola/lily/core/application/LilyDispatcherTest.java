@@ -1,6 +1,6 @@
-package de.pieroavola.lily.application;
+package de.pieroavola.lily.core.application;
 
-import de.pieroavola.lily.testmodules.ValidLilyCommands;
+import de.pieroavola.lily.core.testmodules.ValidLilyCommands;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;

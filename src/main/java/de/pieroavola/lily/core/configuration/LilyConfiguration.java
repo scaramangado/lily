@@ -1,4 +1,4 @@
-package de.pieroavola.lily.configuration;
+package de.pieroavola.lily.core.configuration;
 
 import lombok.Getter;
 import lombok.Setter;
