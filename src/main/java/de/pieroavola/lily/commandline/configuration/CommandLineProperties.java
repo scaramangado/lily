@@ -11,5 +11,5 @@ import org.springframework.stereotype.Component;
 @Component
 public class CommandLineProperties {
 
-    private boolean activate = false;
+    private boolean enabled = false;
 }

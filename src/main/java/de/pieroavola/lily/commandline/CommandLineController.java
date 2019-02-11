@@ -5,7 +5,6 @@ import de.pieroavola.lily.core.communication.Dispatcher;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
-import org.springframework.context.event.ContextStartedEvent;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.stereotype.Controller;
 
@@ -29,7 +28,7 @@ public class CommandLineController implements ApplicationListener<ContextRefresh
 
         LOGGER.info("Loaded Command Line.");
 
-        if (properties.isActivate()) {
+        if (properties.isEnabled()) {
             LOGGER.info("Command line active. Loading Interface.");
             CommandLineInterface commandLineInterface = new CommandLineInterface(dispatcher);
             applicationContext.registerBean(CommandLineInterface.class, () -> commandLineInterface);
