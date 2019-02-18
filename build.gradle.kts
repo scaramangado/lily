@@ -2,7 +2,7 @@ plugins {
    `java-library`
 }
 
-group = "de.pieroavola"
+group = "de.scaramanga"
 version = "1.0-SNAPSHOT"
 
 repositories {

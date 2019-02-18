@@ -1,7 +1,7 @@
-package de.pieroavola.lily.core.application;
+package de.scaramanga.lily.core.application;
 
-import de.pieroavola.lily.core.annotations.LilyModule;
-import de.pieroavola.lily.core.communication.Dispatcher;
+import de.scaramanga.lily.core.annotations.LilyModule;
+import de.scaramanga.lily.core.communication.Dispatcher;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;

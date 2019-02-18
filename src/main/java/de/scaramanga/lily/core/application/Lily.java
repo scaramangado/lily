@@ -1,4 +1,4 @@
-package de.pieroavola.lily.core.application;
+package de.scaramanga.lily.core.application;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;

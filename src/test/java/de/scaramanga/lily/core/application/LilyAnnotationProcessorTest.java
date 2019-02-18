@@ -1,8 +1,8 @@
-package de.pieroavola.lily.core.application;
+package de.scaramanga.lily.core.application;
 
-import de.pieroavola.lily.core.testmodules.DuplicateLilyCommands;
-import de.pieroavola.lily.core.testmodules.InvalidLilyCommands;
-import de.pieroavola.lily.core.testmodules.ValidLilyCommands;
+import de.scaramanga.lily.core.testmodules.DuplicateLilyCommands;
+import de.scaramanga.lily.core.testmodules.InvalidLilyCommands;
+import de.scaramanga.lily.core.testmodules.ValidLilyCommands;
 import org.assertj.core.api.SoftAssertions;
 import org.assertj.core.util.Arrays;
 import org.junit.jupiter.api.Test;
@@ -74,7 +74,7 @@ class LilyAnnotationProcessorTest {
     @Test
     void collectsAllValidCommandsFromPackage() {
 
-        Map<String, Method> commands = LilyAnnotationProcessor.getAllLilyCommands("de.pieroavola.lily.testmodules");
+        Map<String, Method> commands = LilyAnnotationProcessor.getAllLilyCommands("de.scaramanga.lily.testmodules");
 
         assertThat(commands.size())
                 .as("The number of collected commands is incorrect.")

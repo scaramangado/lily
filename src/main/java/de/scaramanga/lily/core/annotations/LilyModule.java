@@ -1,4 +1,4 @@
-package de.pieroavola.lily.core.annotations;
+package de.scaramanga.lily.core.annotations;
 
 import org.springframework.stereotype.Component;
 

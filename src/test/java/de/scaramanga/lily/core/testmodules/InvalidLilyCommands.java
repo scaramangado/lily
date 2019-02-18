@@ -1,7 +1,7 @@
-package de.pieroavola.lily.core.testmodules;
+package de.scaramanga.lily.core.testmodules;
 
-import de.pieroavola.lily.core.annotations.LilyCommand;
-import de.pieroavola.lily.core.annotations.LilyModule;
+import de.scaramanga.lily.core.annotations.LilyCommand;
+import de.scaramanga.lily.core.annotations.LilyModule;
 
 @LilyModule
 public class InvalidLilyCommands {

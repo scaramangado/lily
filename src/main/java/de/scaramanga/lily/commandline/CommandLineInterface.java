@@ -1,8 +1,7 @@
-package de.pieroavola.lily.commandline;
+package de.scaramanga.lily.commandline;
 
-import de.pieroavola.lily.core.communication.Dispatcher;
+import de.scaramanga.lily.core.communication.Dispatcher;
 
-import java.io.Console;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.Scanner;

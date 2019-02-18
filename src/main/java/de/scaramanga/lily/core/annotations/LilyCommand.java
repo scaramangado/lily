@@ -1,4 +1,4 @@
-package de.pieroavola.lily.core.annotations;
+package de.scaramanga.lily.core.annotations;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

@@ -1,7 +1,7 @@
-package de.pieroavola.lily.commandline;
+package de.scaramanga.lily.commandline;
 
-import de.pieroavola.lily.commandline.configuration.CommandLineProperties;
-import de.pieroavola.lily.core.communication.Dispatcher;
+import de.scaramanga.lily.commandline.configuration.CommandLineProperties;
+import de.scaramanga.lily.core.communication.Dispatcher;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;

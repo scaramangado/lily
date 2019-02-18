@@ -1,4 +1,4 @@
-package de.pieroavola.lily.core.communication;
+package de.scaramanga.lily.core.communication;
 
 import java.util.Optional;
 

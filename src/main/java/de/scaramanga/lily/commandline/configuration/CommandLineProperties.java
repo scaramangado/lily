@@ -1,4 +1,4 @@
-package de.pieroavola.lily.commandline.configuration;
+package de.scaramanga.lily.commandline.configuration;
 
 import lombok.Getter;
 import lombok.Setter;
