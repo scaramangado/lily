@@ -72,6 +72,15 @@ final class LilyAnnotationProcessor {
             throw new LilyRuntimeException(String.format("Command %s already exists.", command));
         }
 
+        if (containsWhitespace(command)) {
+            throw new LilyRuntimeException(String.format("Command '%s' contains whitespace.", command));
+        }
+
         methods.put(command, method);
+    }
+
+    private static boolean containsWhitespace(String command) {
+
+        return !command.matches("^\\S*$");
     }
 }

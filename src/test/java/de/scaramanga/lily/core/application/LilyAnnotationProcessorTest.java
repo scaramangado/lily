@@ -3,6 +3,7 @@ package de.scaramanga.lily.core.application;
 import de.scaramanga.lily.core.testmodules.DuplicateLilyCommands;
 import de.scaramanga.lily.core.testmodules.InvalidLilyCommands;
 import de.scaramanga.lily.core.testmodules.ValidLilyCommands;
+import de.scaramanga.lily.core.testmodules.WhitespaceLilyCommands;
 import org.assertj.core.api.SoftAssertions;
 import org.assertj.core.util.Arrays;
 import org.junit.jupiter.api.Test;
@@ -79,6 +80,16 @@ class LilyAnnotationProcessorTest {
         assertThat(commands.size())
                 .as("The number of collected commands is incorrect.")
                 .isEqualTo(4);
+    }
+
+    @Test
+    void doesNotBindToCommandWithWhitespace() {
+
+        Map<String, Method> commands = getCommandsOfClasses(WhitespaceLilyCommands.class);
+
+        assertThat(commands.size())
+                .as("Bound command with whitespace.")
+                .isEqualTo(0);
     }
 
     private Map<String, Method> getCommandsOfClasses(Class<?>... classes) {
