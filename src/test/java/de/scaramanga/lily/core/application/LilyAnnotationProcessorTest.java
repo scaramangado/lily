@@ -75,7 +75,8 @@ class LilyAnnotationProcessorTest {
     @Test
     void collectsAllValidCommandsFromPackage() {
 
-        Map<String, Method> commands = LilyAnnotationProcessor.getAllLilyCommands("de.scaramanga.lily.testmodules");
+        Map<String, Method> commands =
+                LilyAnnotationProcessor.getAllLilyCommands("de.scaramanga.lily.core.testmodules");
 
         assertThat(commands.size())
                 .as("The number of collected commands is incorrect.")
