@@ -1,6 +1,8 @@
 package de.scaramanga.lily.irc.connection;
 
+import de.scaramanga.lily.core.communication.Answer;
 import de.scaramanga.lily.core.communication.Dispatcher;
+import de.scaramanga.lily.core.communication.MessageInfo;
 import de.scaramanga.lily.irc.exceptions.IrcConnectionException;
 import de.scaramanga.lily.irc.exceptions.IrcConnectionInterruptedException;
 import lombok.extern.slf4j.Slf4j;
@@ -134,20 +136,9 @@ class ChannelConnectionThread implements Callable<Void> {
 
         if (action.getType() == PARSE) {
 
-            String[] line = action.getAnswer().orElse("").split(" ");
+            String command = action.getAnswer().orElse("");
 
-            if (line.length == 0) {
-                return;
-            }
-
-            String command = line[0];
-            String[] args = new String[0];
-
-            if (line.length > 1) {
-                args = Arrays.copyOfRange(line, 1, line.length);
-            }
-
-            sendMessage(dispatcher.dispatch(command, args).orElse(CRLF));
+            dispatcher.dispatch(command, MessageInfo.empty()).ifPresent(this::sendMessage);
         }
 
         if (action.getType() == ANSWER) {
@@ -155,10 +146,10 @@ class ChannelConnectionThread implements Callable<Void> {
         }
     }
 
-    private void sendMessage(String message) {
+    private void sendMessage(Answer answer) {
 
         try {
-            writer.write(PRIVMSG + " " + channel + " :" + message + CRLF);
+            writer.write(PRIVMSG + " " + channel + " :" + answer.getText() + CRLF);
             writer.flush();
         } catch (IOException e) {
             LOGGER.error("Couldn't send line.", e);

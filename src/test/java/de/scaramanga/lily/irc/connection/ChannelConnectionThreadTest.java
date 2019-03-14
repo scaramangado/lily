@@ -1,7 +1,9 @@
 package de.scaramanga.lily.irc.connection;
 
 
+import de.scaramanga.lily.core.communication.Answer;
 import de.scaramanga.lily.core.communication.Dispatcher;
+import de.scaramanga.lily.core.communication.MessageInfo;
 import de.scaramanga.lily.irc.exceptions.IrcConnectionInterruptedException;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -67,8 +69,8 @@ class ChannelConnectionThreadTest {
 
         when(messageHandler.handleMessage(PARSE_MESSAGE))
                 .thenReturn(new IrcAction(PARSE, PARSE_MESSAGE));
-        when(dispatcher.dispatch(eq(PARSE_MESSAGE), any(String[].class)))
-                .thenReturn(Optional.of(PARSED_ANSWER));
+        when(dispatcher.dispatch(eq(PARSE_MESSAGE), any(MessageInfo.class)))
+                .thenReturn(Optional.of(Answer.ofText(PARSED_ANSWER)));
 
         when(messageHandler.handleMessage(IGNORE_MESSAGE))
                 .thenReturn(new IrcAction(IGNORE, null));
