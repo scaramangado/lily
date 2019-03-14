@@ -1,12 +1,13 @@
 package de.scaramanga.lily.core.application;
 
+import de.scaramanga.lily.core.communication.Command;
 import de.scaramanga.lily.core.testmodules.DuplicateLilyCommands;
 import de.scaramanga.lily.core.testmodules.InvalidLilyCommands;
 import de.scaramanga.lily.core.testmodules.ValidLilyCommands;
 import de.scaramanga.lily.core.testmodules.WhitespaceLilyCommands;
 import org.assertj.core.api.SoftAssertions;
-import org.assertj.core.util.Arrays;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 import java.lang.reflect.Method;
 import java.util.HashMap;
@@ -39,8 +40,7 @@ class LilyAnnotationProcessorTest {
         for (Entry<String, String> methodCall : expectedResults.entrySet()) {
 
             Method method = commands.get(methodCall.getKey());
-            Object invocationResult = method.invoke(new ValidLilyCommands(),
-                    new Object[] { Arrays.array("") });
+            Object invocationResult = method.invoke(new ValidLilyCommands(), Mockito.mock(Command.class));
             String result = (String) invocationResult;
 
             soft.assertThat(result)

@@ -2,6 +2,7 @@ package de.scaramanga.lily.core.testmodules;
 
 import de.scaramanga.lily.core.annotations.LilyCommand;
 import de.scaramanga.lily.core.annotations.LilyModule;
+import de.scaramanga.lily.core.communication.Command;
 
 @LilyModule
 public class ValidLilyCommands {
@@ -14,12 +15,12 @@ public class ValidLilyCommands {
     public static final String RESULT_TWO = "TWO";
 
     @LilyCommand(COMMAND_ONE)
-    public String commandOne(String[] args) {
+    public String commandOne(Command command) {
         return RESULT_ONE;
     }
 
     @LilyCommand({COMMAND_TWO1, COMMAND_TWO2})
-    public String commandTwo(String[] args) {
+    public String commandTwo(Command command) {
         return RESULT_TWO;
     }
 }

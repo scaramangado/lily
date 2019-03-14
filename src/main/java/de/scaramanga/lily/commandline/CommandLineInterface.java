@@ -1,8 +1,8 @@
 package de.scaramanga.lily.commandline;
 
 import de.scaramanga.lily.core.communication.Dispatcher;
+import de.scaramanga.lily.core.communication.MessageInfo;
 
-import java.util.Arrays;
 import java.util.Optional;
 import java.util.Scanner;
 
@@ -27,20 +27,7 @@ public class CommandLineInterface {
                 interrupted = true;
             }
 
-            String[] line = input.split(" ");
-
-            if (line.length == 0) {
-                continue;
-            }
-
-            String command = line[0];
-            String[] args = new String[0];
-
-            if (line.length > 1) {
-                args = Arrays.copyOfRange(line, 1, line.length);
-            }
-
-            Optional<String> answer = dispatcher.dispatch(command, args);
+            Optional<String> answer = dispatcher.dispatch(input, MessageInfo.empty());
 
             answer.ifPresent(System.out::println);
         }
