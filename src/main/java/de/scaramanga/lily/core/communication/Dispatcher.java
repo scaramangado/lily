@@ -7,5 +7,5 @@ import java.util.Optional;
  */
 public interface Dispatcher {
 
-    Optional<String> dispatch(String message, MessageInfo info);
+    Optional<Answer> dispatch(String message, MessageInfo info);
 }

@@ -2,6 +2,7 @@ package de.scaramanga.lily.core.application;
 
 import de.scaramanga.lily.core.annotations.LilyCommand;
 import de.scaramanga.lily.core.annotations.LilyModule;
+import de.scaramanga.lily.core.communication.Answer;
 import de.scaramanga.lily.core.communication.Command;
 import de.scaramanga.lily.core.exceptions.LilyRuntimeException;
 import lombok.extern.slf4j.Slf4j;
@@ -63,7 +64,7 @@ final class LilyAnnotationProcessor {
 
     private static void putIfValidCommand(String command, Method method, Map<String, Method> methods) {
 
-        if (method.getReturnType() != String.class ||
+        if (method.getReturnType() != Answer.class ||
                 (method.getParameterCount() != 1 || method.getParameterTypes()[0] != Command.class) ) {
             throw new LilyRuntimeException(String.format("Method %s.%s does not have a valid signature.",
                     method.getDeclaringClass().getCanonicalName(), method.getName()));

@@ -1,5 +1,6 @@
 package de.scaramanga.lily.core.application;
 
+import de.scaramanga.lily.core.communication.Answer;
 import de.scaramanga.lily.core.communication.MessageInfo;
 import de.scaramanga.lily.core.testmodules.ValidLilyCommands;
 import org.assertj.core.api.SoftAssertions;
@@ -42,14 +43,14 @@ class LilyDispatcherTest {
 
         SoftAssertions soft = new SoftAssertions();
 
-        Optional<String> answer = dispatcher.dispatch(ValidLilyCommands.COMMAND_ONE, testMessageInfo);
+        Optional<Answer> answer = dispatcher.dispatch(ValidLilyCommands.COMMAND_ONE, testMessageInfo);
 
         soft.assertThat(answer.isPresent())
                 .as("No answer.")
                 .isTrue();
 
         answer.ifPresent(s ->
-                soft.assertThat(s)
+                soft.assertThat(s.getText())
                 .as("Wrong answer.")
                 .isEqualTo(ValidLilyCommands.RESULT_ONE));
 
@@ -59,7 +60,7 @@ class LilyDispatcherTest {
     @Test
     void emptyOptionalForMissingCommand() {
 
-        Optional<String> answer = dispatcher.dispatch(INVALID_COMMAND, testMessageInfo);
+        Optional<Answer> answer = dispatcher.dispatch(INVALID_COMMAND, testMessageInfo);
 
         assertThat(answer.isPresent()).as("Answer for missing command.").isFalse();
     }

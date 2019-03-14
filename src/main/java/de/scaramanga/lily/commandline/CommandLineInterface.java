@@ -1,5 +1,6 @@
 package de.scaramanga.lily.commandline;
 
+import de.scaramanga.lily.core.communication.Answer;
 import de.scaramanga.lily.core.communication.Dispatcher;
 import de.scaramanga.lily.core.communication.MessageInfo;
 
@@ -27,9 +28,9 @@ public class CommandLineInterface {
                 interrupted = true;
             }
 
-            Optional<String> answer = dispatcher.dispatch(input, MessageInfo.empty());
+            Optional<Answer> answer = dispatcher.dispatch(input, MessageInfo.empty());
 
-            answer.ifPresent(System.out::println);
+            answer.map(Answer::getText).ifPresent(System.out::println);
         }
     }
 }

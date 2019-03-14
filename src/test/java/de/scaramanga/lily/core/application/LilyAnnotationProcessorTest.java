@@ -1,5 +1,6 @@
 package de.scaramanga.lily.core.application;
 
+import de.scaramanga.lily.core.communication.Answer;
 import de.scaramanga.lily.core.communication.Command;
 import de.scaramanga.lily.core.testmodules.DuplicateLilyCommands;
 import de.scaramanga.lily.core.testmodules.InvalidLilyCommands;
@@ -41,9 +42,9 @@ class LilyAnnotationProcessorTest {
 
             Method method = commands.get(methodCall.getKey());
             Object invocationResult = method.invoke(new ValidLilyCommands(), Mockito.mock(Command.class));
-            String result = (String) invocationResult;
+            Answer result = (Answer) invocationResult;
 
-            soft.assertThat(result)
+            soft.assertThat(result.getText())
                     .as("Invocation did not yield the expected result.")
                     .isEqualTo(methodCall.getValue());
         }

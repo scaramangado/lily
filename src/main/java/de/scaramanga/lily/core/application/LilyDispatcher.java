@@ -1,6 +1,7 @@
 package de.scaramanga.lily.core.application;
 
 import de.scaramanga.lily.core.annotations.LilyModule;
+import de.scaramanga.lily.core.communication.Answer;
 import de.scaramanga.lily.core.communication.Command;
 import de.scaramanga.lily.core.communication.Dispatcher;
 import de.scaramanga.lily.core.communication.MessageInfo;
@@ -30,7 +31,7 @@ class LilyDispatcher implements Dispatcher {
     }
 
     @Override
-    public Optional<String> dispatch(String message, MessageInfo messageInfo) {
+    public Optional<Answer> dispatch(String message, MessageInfo messageInfo) {
 
         if(commands == null) {
             initializeCommands();
@@ -45,7 +46,7 @@ class LilyDispatcher implements Dispatcher {
         Method method = commands.get(command.getName());
 
         try {
-            return Optional.of((String) method.invoke(ac.getBean(method.getDeclaringClass()), (Object) command));
+            return Optional.of((Answer) method.invoke(ac.getBean(method.getDeclaringClass()), (Object) command));
         } catch (NullPointerException e) {
             // Command not defined.
         } catch (Exception e) {
