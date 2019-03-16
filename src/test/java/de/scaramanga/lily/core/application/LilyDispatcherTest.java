@@ -1,10 +1,14 @@
 package de.scaramanga.lily.core.application;
 
 import de.scaramanga.lily.core.communication.Answer;
+import de.scaramanga.lily.core.communication.Command;
+import de.scaramanga.lily.core.communication.CommandInterceptor;
 import de.scaramanga.lily.core.communication.MessageInfo;
+import de.scaramanga.lily.core.configuration.LilyConfiguration;
 import de.scaramanga.lily.core.testmodules.ValidLilyCommands;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,27 +19,44 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.Optional;
 
+import static de.scaramanga.lily.core.communication.CommandInterceptor.ContinueProcessing.*;
 import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(SpringExtension.class)
-@SpringBootTest(classes = { LilyDispatcher.class })
+@SpringBootTest(classes = LilyConfiguration.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class LilyDispatcherTest {
 
-    @Autowired private GenericApplicationContext applicationContext;
-    private final LilyDispatcher dispatcher;
+    private final GenericApplicationContext applicationContext;
+    private final LilyConfiguration properties;
+    private LilyDispatcher dispatcher;
 
     private static final MessageInfo testMessageInfo = new MessageInfo() {};
     private static final String INVALID_COMMAND = "invalid";
 
-    LilyDispatcherTest(@Autowired GenericApplicationContext applicationContext) {
+    private static final CommandInterceptor continueInterceptor = mock(CommandInterceptor.class);
+    private static final CommandInterceptor stopInterceptor = mock(CommandInterceptor.class);
+
+    @Autowired
+    LilyDispatcherTest(GenericApplicationContext applicationContext, LilyConfiguration properties) {
         this.applicationContext = applicationContext;
-        dispatcher = applicationContext.getBean(LilyDispatcher.class);
+        this.properties = properties;
+        this.properties.setCommandPrefix("");
     }
 
     @BeforeAll
     void setup() {
+
         applicationContext.registerBean(ValidLilyCommands.class, ValidLilyCommands::new);
+
+        when(continueInterceptor.process(any(Command.class))).thenReturn(CONTINUE);
+        when(stopInterceptor.process(any(Command.class))).thenReturn(STOP);
+    }
+
+    @BeforeEach
+    void reinitialize() {
+        dispatcher = new LilyDispatcher(applicationContext, properties);
     }
 
     @Test
@@ -63,5 +84,31 @@ class LilyDispatcherTest {
         Optional<Answer> answer = dispatcher.dispatch(INVALID_COMMAND, testMessageInfo);
 
         assertThat(answer.isPresent()).as("Answer for missing command.").isFalse();
+    }
+
+    @Test
+    void interceptsCommandAndContinuesProcessing() {
+
+        dispatcher.addInterceptor(continueInterceptor);
+        Optional<Answer> answer = dispatcher.dispatch(ValidLilyCommands.COMMAND_ONE, testMessageInfo);
+
+        verify(continueInterceptor).process(any(Command.class));
+
+        assertThat(answer.orElse(Answer.ofText("")).getText())
+                .withFailMessage("Wrong answer.")
+                .isEqualTo(ValidLilyCommands.RESULT_ONE);
+    }
+
+    @Test
+    void interceptsCommandAndStopsProcessing() {
+
+        dispatcher.addInterceptor(stopInterceptor);
+        Optional<Answer> answer = dispatcher.dispatch(ValidLilyCommands.COMMAND_ONE, testMessageInfo);
+
+        verify(stopInterceptor).process(any(Command.class));
+
+        assertThat(answer.isPresent())
+                .withFailMessage("Answer not empty.")
+                .isFalse();
     }
 }

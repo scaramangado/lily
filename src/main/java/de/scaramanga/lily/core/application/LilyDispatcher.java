@@ -1,19 +1,17 @@
 package de.scaramanga.lily.core.application;
 
 import de.scaramanga.lily.core.annotations.LilyModule;
-import de.scaramanga.lily.core.communication.Answer;
-import de.scaramanga.lily.core.communication.Command;
-import de.scaramanga.lily.core.communication.Dispatcher;
-import de.scaramanga.lily.core.communication.MessageInfo;
+import de.scaramanga.lily.core.communication.*;
 import de.scaramanga.lily.core.configuration.LilyConfiguration;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static de.scaramanga.lily.core.communication.CommandInterceptor.ContinueProcessing.STOP;
 
 @Component
 @Slf4j
@@ -24,6 +22,8 @@ class LilyDispatcher implements Dispatcher {
     private final LilyConfiguration properties;
 
     private Map<String, Method> commands = null;
+
+    private List<CommandInterceptor> interceptors = new ArrayList<>();
 
     LilyDispatcher(ApplicationContext ac, LilyConfiguration properties) {
         this.ac = ac;
@@ -37,7 +37,7 @@ class LilyDispatcher implements Dispatcher {
             initializeCommands();
         }
 
-        if (!message.startsWith(properties.getCommandPrefix())) {
+        if (processedByInterceptor(message, messageInfo) || !message.startsWith(properties.getCommandPrefix())) {
             return Optional.empty();
         }
 
@@ -56,6 +56,27 @@ class LilyDispatcher implements Dispatcher {
         return Optional.empty();
     }
 
+    private boolean processedByInterceptor(String message, MessageInfo messageInfo) {
+
+        for (CommandInterceptor interceptor : interceptors) {
+
+            if (interceptor.process(Command.withMessageInfo(message, messageInfo)) == STOP) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public void addInterceptor(CommandInterceptor interceptor) {
+
+        if (interceptors.contains(interceptor)) {
+            return;
+        }
+
+        interceptors.add(0, interceptor);
+    }
+
     private void initializeCommands() {
         Collection<Object> beans = ac.getBeansWithAnnotation(LilyModule.class).values();
         commands = LilyAnnotationProcessor.getAllLilyCommands(beans
@@ -68,7 +89,7 @@ class LilyDispatcher implements Dispatcher {
             throw new IllegalArgumentException("Message ust start with defined Prefix.");
         }
 
-        String[] split = message.substring(1).split(" ");
+        String[] split = message.substring(properties.getCommandPrefix().length()).split(" ");
         List<String> args = Arrays.asList(Arrays.copyOfRange(split, 1, split.length));
 
         return new Command() {

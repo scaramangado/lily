@@ -8,4 +8,6 @@ import java.util.Optional;
 public interface Dispatcher {
 
     Optional<Answer> dispatch(String message, MessageInfo info);
+
+    void addInterceptor(CommandInterceptor interceptor);
 }
