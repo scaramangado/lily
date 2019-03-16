@@ -3,6 +3,7 @@ package de.scaramanga.lily.core.communication;
 /**
  * Interface describing class that is able to process any message before dispatching takes place.
  */
+@FunctionalInterface
 public interface CommandInterceptor {
 
     /**
