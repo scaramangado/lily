@@ -12,9 +12,9 @@ public interface CommandInterceptor {
      * @param message The intercepted message.
      * @return Should dispatching continue after processing?
      */
-    ContinueProcessing process(Command message);
+    ContinuationStrategy process(Command message);
 
-    enum ContinueProcessing {
+    enum ContinuationStrategy {
         CONTINUE, STOP
     }
 }

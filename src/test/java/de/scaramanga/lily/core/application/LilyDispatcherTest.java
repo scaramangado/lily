@@ -19,7 +19,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.Optional;
 
-import static de.scaramanga.lily.core.communication.CommandInterceptor.ContinueProcessing.*;
+import static de.scaramanga.lily.core.communication.CommandInterceptor.ContinuationStrategy.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -110,5 +110,15 @@ class LilyDispatcherTest {
         assertThat(answer.isPresent())
                 .withFailMessage("Answer not empty.")
                 .isFalse();
+    }
+
+    @Test
+    void broadcastsToAllRegisteredBroadcasters() {
+        fail("Not implemented");
+    }
+
+    @Test
+    void doesNotBroadcastToBroadcastersWithSuperclass() {
+        fail("Not implemented");
     }
 }

@@ -8,10 +8,11 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static de.scaramanga.lily.core.communication.CommandInterceptor.ContinueProcessing.STOP;
+import static de.scaramanga.lily.core.communication.CommandInterceptor.ContinuationStrategy.STOP;
 
 @Component
 @Slf4j
@@ -24,6 +25,8 @@ class LilyDispatcher implements Dispatcher {
     private Map<String, Method> commands = null;
 
     private List<CommandInterceptor> interceptors = new ArrayList<>();
+
+    private List<Broadcaster<? extends Answer>> broadcasters = new ArrayList<>();
 
     LilyDispatcher(ApplicationContext ac, LilyConfiguration properties) {
         this.ac = ac;
@@ -68,6 +71,7 @@ class LilyDispatcher implements Dispatcher {
         return false;
     }
 
+    @Override
     public void addInterceptor(CommandInterceptor interceptor) {
 
         if (interceptors.contains(interceptor)) {
@@ -75,6 +79,32 @@ class LilyDispatcher implements Dispatcher {
         }
 
         interceptors.add(0, interceptor);
+    }
+
+    @Override
+    public void addBroadcaster(Broadcaster<? extends Answer> broadcaster) {
+        if (!broadcasters.contains(broadcaster)) {
+            broadcasters.add(broadcaster);
+        }
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <T extends Answer<? extends AnswerInfo>> void broadcast(T broadcast, Class<T> type) {
+
+        broadcasters.stream()
+                .filter(broadcaster -> hasGenericParameter(broadcaster, type))
+                .map(broadcaster -> (Broadcaster<T>) broadcaster)
+                .forEach(broadcaster -> broadcaster.broadcast(broadcast));
+    }
+
+    private <T> boolean hasGenericParameter(Object object, Class<T> paramter) {
+
+        return Arrays.stream(object.getClass().getGenericInterfaces())
+                .map(Type::getTypeName)
+                .filter(type -> type.startsWith(Broadcaster.class.getName()))
+                .map(name -> name.substring(name.indexOf('<') + 1, name.indexOf('>')))
+                .anyMatch(name -> name.equals(paramter.getName()));
     }
 
     private void initializeCommands() {

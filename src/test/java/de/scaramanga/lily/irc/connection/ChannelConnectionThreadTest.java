@@ -4,6 +4,8 @@ package de.scaramanga.lily.irc.connection;
 import de.scaramanga.lily.core.communication.Answer;
 import de.scaramanga.lily.core.communication.Dispatcher;
 import de.scaramanga.lily.core.communication.MessageInfo;
+import de.scaramanga.lily.irc.communication.IrcAnswer;
+import de.scaramanga.lily.irc.communication.IrcAnswerInfo;
 import de.scaramanga.lily.irc.exceptions.IrcConnectionInterruptedException;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -44,6 +46,7 @@ class ChannelConnectionThreadTest {
     private static final String ANSWER_MESSAGE = "answerMessage";
     private static final String PARSE_MESSAGE = "parseMessage";
     private static final String IGNORE_MESSAGE = "ignoreMessage";
+    private static final String BROADCAST_MESSAGE = "broadcastMessage";
 
     private static final String PARSED_ANSWER = "parsedAnswer";
 
@@ -66,11 +69,15 @@ class ChannelConnectionThreadTest {
 
         when(messageHandler.handleMessage(ANSWER_MESSAGE))
                 .thenReturn(new IrcAction(ANSWER, ANSWER_MESSAGE));
-
         when(messageHandler.handleMessage(PARSE_MESSAGE))
                 .thenReturn(new IrcAction(PARSE, PARSE_MESSAGE));
+
         when(dispatcher.dispatch(eq(PARSE_MESSAGE), any(MessageInfo.class)))
                 .thenReturn(Optional.of(Answer.ofText(PARSED_ANSWER)));
+        doAnswer(invocation -> {
+            connection.broadcast(invocation.getArgument(0));
+            return null;
+        }).when(dispatcher).broadcast(any(IrcAnswer.class), eq(IrcAnswer.class));
 
         when(messageHandler.handleMessage(IGNORE_MESSAGE))
                 .thenReturn(new IrcAction(IGNORE, null));
@@ -164,6 +171,22 @@ class ChannelConnectionThreadTest {
         assertThat(lengthOfOutput)
                 .as("Did not ignore message.")
                 .isEqualTo(0);
+    }
+
+    @Test
+    @Order(2)
+    void broadcasts() {
+
+        byte[] broadcastMessage = (PRIVMSG + " #" + CHANNEL + " " + BROADCAST_MESSAGE + CRLF).getBytes();
+
+        dispatcher.broadcast(new IrcAnswer(BROADCAST_MESSAGE, new IrcAnswerInfo()), IrcAnswer.class);
+
+        byte[] actualOutput = socketOutputStream.toByteArray();
+        socketOutputStream.reset();
+
+        assertThat(new String(actualOutput))
+                .as("Didn't broadcast correctly.")
+                .isEqualTo(new String(broadcastMessage));
     }
 
     @Test

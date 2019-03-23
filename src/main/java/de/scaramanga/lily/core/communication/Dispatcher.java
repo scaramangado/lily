@@ -10,4 +10,8 @@ public interface Dispatcher {
     Optional<Answer> dispatch(String message, MessageInfo info);
 
     void addInterceptor(CommandInterceptor interceptor);
+
+    void addBroadcaster(Broadcaster<? extends Answer> broadcaster);
+
+    <T extends Answer<? extends AnswerInfo>> void broadcast(T broadcast, Class<T> type);
 }

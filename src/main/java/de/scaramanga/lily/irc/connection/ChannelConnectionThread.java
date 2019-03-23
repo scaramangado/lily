@@ -1,15 +1,21 @@
 package de.scaramanga.lily.irc.connection;
 
 import de.scaramanga.lily.core.communication.Answer;
+import de.scaramanga.lily.core.communication.Broadcaster;
 import de.scaramanga.lily.core.communication.Dispatcher;
 import de.scaramanga.lily.core.communication.MessageInfo;
+import de.scaramanga.lily.irc.communication.IrcAnswer;
 import de.scaramanga.lily.irc.exceptions.IrcConnectionException;
 import de.scaramanga.lily.irc.exceptions.IrcConnectionInterruptedException;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.Closeable;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.net.Socket;
-import java.util.Arrays;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -17,7 +23,7 @@ import static de.scaramanga.lily.irc.connection.IrcAction.Type.ANSWER;
 import static de.scaramanga.lily.irc.connection.IrcAction.Type.PARSE;
 
 @Slf4j
-class ChannelConnectionThread implements Callable<Void> {
+class ChannelConnectionThread implements Callable<Void>, Broadcaster<IrcAnswer> {
 
     private BufferedReader reader;
 
@@ -42,6 +48,8 @@ class ChannelConnectionThread implements Callable<Void> {
         this.dispatcher = dispatcher;
         this.messageHandler = messageHandler;
         this.channel = "#" + info.getChannel();
+
+        this.dispatcher.addBroadcaster(this);
     }
 
     @Override
@@ -70,6 +78,11 @@ class ChannelConnectionThread implements Callable<Void> {
         }
 
         return null;
+    }
+
+    @Override
+    public void broadcast(IrcAnswer broadcast) {
+        sendLine(PRIVMSG + " " + channel + " " + broadcast.getText());
     }
 
     private void authenticate() throws IOException {

@@ -1,14 +1,14 @@
 package de.scaramanga.lily.core.communication;
 
-public interface Answer {
+public interface Answer<T extends AnswerInfo> {
 
     String getText();
 
-    AnswerInfo getAnswerInfo();
+    T getAnswerInfo();
 
-    static Answer ofText(String text) {
+    static Answer<AnswerInfo> ofText(String text) {
 
-        return new Answer() {
+        return new Answer<AnswerInfo>() {
             @Override
             public String getText() {
                 return text;
