@@ -85,6 +85,11 @@ class ChannelConnectionThread implements Callable<Void>, Broadcaster<IrcAnswer> 
         sendLine(PRIVMSG + " " + channel + " " + broadcast.getText());
     }
 
+    @Override
+    public void shutdown() {
+        //
+    }
+
     private void authenticate() throws IOException {
         writer.write("PASS " + info.getPassword() + CRLF);
         writer.write("NICK " + info.getUsername() + CRLF);

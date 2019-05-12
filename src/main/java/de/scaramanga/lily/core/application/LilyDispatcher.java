@@ -98,13 +98,14 @@ class LilyDispatcher implements Dispatcher {
                 .forEach(broadcaster -> broadcaster.broadcast(broadcast));
     }
 
-    private <T> boolean hasGenericParameter(Object object, Class<T> paramter) {
+    private <T> boolean hasGenericParameter(Object object, Class<T> parameter) {
 
         return Arrays.stream(object.getClass().getGenericInterfaces())
                 .map(Type::getTypeName)
                 .filter(type -> type.startsWith(Broadcaster.class.getName()))
+                .filter(type -> type.contains("<"))
                 .map(name -> name.substring(name.indexOf('<') + 1, name.indexOf('>')))
-                .anyMatch(name -> name.equals(paramter.getName()));
+                .anyMatch(name -> canConsumeBroadcastType(name, parameter));
     }
 
     private void initializeCommands() {
@@ -143,5 +144,16 @@ class LilyDispatcher implements Dispatcher {
                 return messageInfo;
             }
         };
+    }
+
+    private <T> boolean canConsumeBroadcastType(String broadcasterTypeName, Class<T> broadcastType) {
+
+        if (broadcasterTypeName.equals(broadcastType.getTypeName())) {
+            return true;
+        }
+
+        return Arrays.stream(broadcastType.getInterfaces())
+                .map(Class::getCanonicalName)
+                .anyMatch(name -> name.equals(broadcasterTypeName));
     }
 }
