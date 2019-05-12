@@ -28,6 +28,7 @@ dependencies {
     }
 
     testImplementation("org.assertj:assertj-core:3.11.1")
+    testImplementation("org.awaitility:awaitility:3.1.6")
 }
 
 tasks.withType(Test::class) {
