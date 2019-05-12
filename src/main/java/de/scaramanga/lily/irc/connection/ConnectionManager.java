@@ -1,13 +1,13 @@
-package de.scaramanga.lily.irc2.connection;
+package de.scaramanga.lily.irc.connection;
 
-import de.scaramanga.lily.irc2.configuration.Irc2Properties;
-import de.scaramanga.lily.irc2.connection.actions.BroadcastActionData;
-import de.scaramanga.lily.irc2.connection.actions.ConnectionAction;
-import de.scaramanga.lily.irc2.connection.actions.JoinActionData;
-import de.scaramanga.lily.irc2.connection.actions.LeaveActionData;
-import de.scaramanga.lily.irc2.interfaces.RootMessageHandler;
-import de.scaramanga.lily.irc2.interfaces.MessageHandler;
-import de.scaramanga.lily.irc2.interfaces.SocketFactory;
+import de.scaramanga.lily.irc.configuration.IrcProperties;
+import de.scaramanga.lily.irc.connection.actions.BroadcastActionData;
+import de.scaramanga.lily.irc.connection.actions.ConnectionAction;
+import de.scaramanga.lily.irc.connection.actions.JoinActionData;
+import de.scaramanga.lily.irc.connection.actions.LeaveActionData;
+import de.scaramanga.lily.irc.interfaces.RootMessageHandler;
+import de.scaramanga.lily.irc.interfaces.MessageHandler;
+import de.scaramanga.lily.irc.interfaces.SocketFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.context.event.ContextRefreshedEvent;
@@ -21,12 +21,12 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 
-import static de.scaramanga.lily.irc2.connection.actions.ConnectionAction.ConnectionActionType.*;
+import static de.scaramanga.lily.irc.connection.actions.ConnectionAction.ConnectionActionType.*;
 
 @Component
 public class ConnectionManager {
 
-    private final Irc2Properties properties;
+    private final IrcProperties properties;
     private final MessageHandler messageHandler;
     private final RootMessageHandler rootMessageHandler;
     private final SocketFactory socketFactory;
@@ -35,7 +35,7 @@ public class ConnectionManager {
     private final Queue<ConnectionAction> actionQueue;
     private final ConnectionFactory connectionFactory;
 
-    ConnectionManager(Irc2Properties properties, MessageHandler messageHandler,
+    ConnectionManager(IrcProperties properties, MessageHandler messageHandler,
                       RootMessageHandler rootMessageHandler, SocketFactory socketFactory,
                       Supplier<Queue<ConnectionAction>> actionQueueSupplier, ConnectionFactory connectionFactory) {
         this.properties = properties;
@@ -47,7 +47,7 @@ public class ConnectionManager {
     }
 
     @Autowired
-    public ConnectionManager(Irc2Properties properties, MessageHandler messageHandler,
+    public ConnectionManager(IrcProperties properties, MessageHandler messageHandler,
                              RootMessageHandler rootMessageHandler, SocketFactory socketFactory) {
         this(properties, messageHandler, rootMessageHandler, socketFactory, ConcurrentLinkedQueue::new,
                 ConnectionFactory.standardFactory());

@@ -1,4 +1,4 @@
-package de.scaramanga.lily.irc2.connection;
+package de.scaramanga.lily.irc.connection;
 
 import de.scaramanga.lily.core.communication.Answer;
 import de.scaramanga.lily.core.communication.Dispatcher;
@@ -12,7 +12,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.Optional;
 
-import static de.scaramanga.lily.irc2.connection.MessageAnswer.AnswerType.*;
+import static de.scaramanga.lily.irc.connection.MessageAnswer.AnswerType.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 

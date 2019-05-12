@@ -1,7 +1,7 @@
-package de.scaramanga.lily.irc2.configuration;
+package de.scaramanga.lily.irc.configuration;
 
-import de.scaramanga.lily.irc2.exception.IrcConnectionException;
-import de.scaramanga.lily.irc2.interfaces.SocketFactory;
+import de.scaramanga.lily.irc.exception.IrcConnectionException;
+import de.scaramanga.lily.irc.interfaces.SocketFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.net.Socket;
 
 @Configuration
-public class Irc2Configuration {
+public class IrcConfiguration {
 
     @Bean
     public SocketFactory getSocketFactory() {

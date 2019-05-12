@@ -15,6 +15,8 @@ dependencies {
 
     implementation("org.reflections:reflections:0.9.11")
 
+    lombok("1.18.4")
+
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.4.0")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.4.0")
 
@@ -47,4 +49,15 @@ tasks.compileTestJava {
 
 tasks.withType(Wrapper::class) {
     gradleVersion = "5.1.1"
+}
+
+fun DependencyHandler.lombok(version: Any) {
+
+    val dependencyNotation = "org.projectlombok:lombok:$version"
+
+    implementation(dependencyNotation)
+    testImplementation(dependencyNotation)
+
+    annotationProcessor(dependencyNotation)
+    testAnnotationProcessor(dependencyNotation)
 }

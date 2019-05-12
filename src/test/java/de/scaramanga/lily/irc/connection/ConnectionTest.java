@@ -1,11 +1,11 @@
-package de.scaramanga.lily.irc2.connection;
+package de.scaramanga.lily.irc.connection;
 
-import de.scaramanga.lily.irc2.connection.actions.BroadcastActionData;
-import de.scaramanga.lily.irc2.connection.actions.ConnectionAction;
-import de.scaramanga.lily.irc2.connection.actions.JoinActionData;
-import de.scaramanga.lily.irc2.connection.actions.LeaveActionData;
-import de.scaramanga.lily.irc2.interfaces.MessageHandler;
-import de.scaramanga.lily.irc2.interfaces.RootMessageHandler;
+import de.scaramanga.lily.irc.connection.actions.BroadcastActionData;
+import de.scaramanga.lily.irc.connection.actions.ConnectionAction;
+import de.scaramanga.lily.irc.connection.actions.JoinActionData;
+import de.scaramanga.lily.irc.connection.actions.LeaveActionData;
+import de.scaramanga.lily.irc.interfaces.MessageHandler;
+import de.scaramanga.lily.irc.interfaces.RootMessageHandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.invocation.InvocationOnMock;
@@ -17,7 +17,7 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.util.*;
 
-import static de.scaramanga.lily.irc2.connection.actions.ConnectionAction.ConnectionActionType.*;
+import static de.scaramanga.lily.irc.connection.actions.ConnectionAction.ConnectionActionType.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 

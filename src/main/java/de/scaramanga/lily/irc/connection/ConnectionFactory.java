@@ -1,9 +1,9 @@
-package de.scaramanga.lily.irc2.connection;
+package de.scaramanga.lily.irc.connection;
 
-import de.scaramanga.lily.irc2.connection.actions.ConnectionAction;
-import de.scaramanga.lily.irc2.interfaces.MessageHandler;
-import de.scaramanga.lily.irc2.interfaces.RootMessageHandler;
-import de.scaramanga.lily.irc2.interfaces.SocketFactory;
+import de.scaramanga.lily.irc.connection.actions.ConnectionAction;
+import de.scaramanga.lily.irc.interfaces.MessageHandler;
+import de.scaramanga.lily.irc.interfaces.RootMessageHandler;
+import de.scaramanga.lily.irc.interfaces.SocketFactory;
 
 import java.util.Queue;
 

@@ -1,13 +1,13 @@
-package de.scaramanga.lily.irc2.connection;
+package de.scaramanga.lily.irc.connection;
 
-import de.scaramanga.lily.irc2.configuration.Irc2Properties;
-import de.scaramanga.lily.irc2.connection.actions.BroadcastActionData;
-import de.scaramanga.lily.irc2.connection.actions.ConnectionAction;
-import de.scaramanga.lily.irc2.connection.actions.JoinActionData;
-import de.scaramanga.lily.irc2.connection.actions.LeaveActionData;
-import de.scaramanga.lily.irc2.interfaces.MessageHandler;
-import de.scaramanga.lily.irc2.interfaces.RootMessageHandler;
-import de.scaramanga.lily.irc2.interfaces.SocketFactory;
+import de.scaramanga.lily.irc.configuration.IrcProperties;
+import de.scaramanga.lily.irc.connection.actions.BroadcastActionData;
+import de.scaramanga.lily.irc.connection.actions.ConnectionAction;
+import de.scaramanga.lily.irc.connection.actions.JoinActionData;
+import de.scaramanga.lily.irc.connection.actions.LeaveActionData;
+import de.scaramanga.lily.irc.interfaces.MessageHandler;
+import de.scaramanga.lily.irc.interfaces.RootMessageHandler;
+import de.scaramanga.lily.irc.interfaces.SocketFactory;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -20,12 +20,12 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 
-import static de.scaramanga.lily.irc2.connection.actions.ConnectionAction.ConnectionActionType.*;
+import static de.scaramanga.lily.irc.connection.actions.ConnectionAction.ConnectionActionType.*;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(SpringExtension.class)
-@SpringBootTest(classes = Irc2Properties.class)
+@SpringBootTest(classes = IrcProperties.class)
 class ConnectionManagerTest {
 
     private ConnectionManager manager;
@@ -33,7 +33,7 @@ class ConnectionManagerTest {
     private RootMessageHandler rootMessageHandlerMock = mock(RootMessageHandler.class);
     private SocketFactory socketFactoryMock = mock(SocketFactory.class);
     private Queue<ConnectionAction> actionQueue;
-    private Irc2Properties properties;
+    private IrcProperties properties;
     private Connection connectionMock = mock(Connection.class);
 
     private static final String CHANNEL = "channel";
@@ -43,7 +43,7 @@ class ConnectionManagerTest {
     void setup() {
 
         actionQueue = new ConcurrentLinkedQueue<>();
-        properties = new Irc2Properties();
+        properties = new IrcProperties();
         properties.setEnabled(true);
         properties.setChannels(new ArrayList<>());
 

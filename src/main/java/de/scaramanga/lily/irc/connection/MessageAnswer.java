@@ -1,4 +1,4 @@
-package de.scaramanga.lily.irc2.connection;
+package de.scaramanga.lily.irc.connection;
 
 import lombok.Getter;
 

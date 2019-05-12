@@ -1,15 +1,15 @@
-package de.scaramanga.lily.irc2.connection;
+package de.scaramanga.lily.irc.connection;
 
-import de.scaramanga.lily.irc2.connection.actions.BroadcastActionData;
-import de.scaramanga.lily.irc2.connection.actions.ConnectionAction;
-import de.scaramanga.lily.irc2.connection.actions.ConnectionAction.ConnectionActionType;
-import de.scaramanga.lily.irc2.connection.actions.ConnectionActionData;
-import de.scaramanga.lily.irc2.connection.actions.JoinActionData;
-import de.scaramanga.lily.irc2.connection.actions.LeaveActionData;
-import de.scaramanga.lily.irc2.exception.IrcConnectionException;
-import de.scaramanga.lily.irc2.interfaces.RootMessageHandler;
-import de.scaramanga.lily.irc2.interfaces.MessageHandler;
-import de.scaramanga.lily.irc2.interfaces.SocketFactory;
+import de.scaramanga.lily.irc.connection.actions.BroadcastActionData;
+import de.scaramanga.lily.irc.connection.actions.ConnectionAction;
+import de.scaramanga.lily.irc.connection.actions.ConnectionAction.ConnectionActionType;
+import de.scaramanga.lily.irc.connection.actions.ConnectionActionData;
+import de.scaramanga.lily.irc.connection.actions.JoinActionData;
+import de.scaramanga.lily.irc.connection.actions.LeaveActionData;
+import de.scaramanga.lily.irc.exception.IrcConnectionException;
+import de.scaramanga.lily.irc.interfaces.RootMessageHandler;
+import de.scaramanga.lily.irc.interfaces.MessageHandler;
+import de.scaramanga.lily.irc.interfaces.SocketFactory;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.BufferedReader;
@@ -28,8 +28,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-import static de.scaramanga.lily.irc2.connection.MessageAnswer.AnswerType.*;
-import static de.scaramanga.lily.irc2.connection.actions.ConnectionAction.ConnectionActionType.*;
+import static de.scaramanga.lily.irc.connection.MessageAnswer.AnswerType.*;
+import static de.scaramanga.lily.irc.connection.actions.ConnectionAction.ConnectionActionType.*;
 
 @Slf4j
 class Connection implements Callable<Void> {

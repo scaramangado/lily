@@ -1,6 +1,6 @@
-package de.scaramanga.lily.irc2.interfaces;
+package de.scaramanga.lily.irc.interfaces;
 
-import de.scaramanga.lily.irc2.connection.MessageAnswer;
+import de.scaramanga.lily.irc.connection.MessageAnswer;
 
 @FunctionalInterface
 public interface MessageHandler {

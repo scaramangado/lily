@@ -1,4 +1,4 @@
-package de.scaramanga.lily.irc2.exception;
+package de.scaramanga.lily.irc.exception;
 
 public class IrcConnectionException extends RuntimeException {
 

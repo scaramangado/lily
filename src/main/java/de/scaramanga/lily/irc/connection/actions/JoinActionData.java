@@ -1,6 +1,6 @@
-package de.scaramanga.lily.irc2.connection.actions;
+package de.scaramanga.lily.irc.connection.actions;
 
-public class LeaveActionData extends ConnectionActionData {
+public class JoinActionData extends ConnectionActionData {
 
     private static final String CHANNEL_NAME = "channelName";
 
@@ -12,9 +12,9 @@ public class LeaveActionData extends ConnectionActionData {
         data.setProperty(CHANNEL_NAME, channelName);
     }
 
-    public static LeaveActionData withChannelName(String channelName) {
+    public static JoinActionData withChannelName(String channelName) {
 
-        LeaveActionData data = new LeaveActionData();
+        JoinActionData data = new JoinActionData();
         data.setChannelName(channelName);
         return data;
     }

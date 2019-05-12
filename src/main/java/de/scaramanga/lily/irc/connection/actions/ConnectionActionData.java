@@ -1,4 +1,4 @@
-package de.scaramanga.lily.irc2.connection.actions;
+package de.scaramanga.lily.irc.connection.actions;
 
 import java.util.Properties;
 

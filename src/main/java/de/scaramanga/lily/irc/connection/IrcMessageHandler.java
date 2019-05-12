@@ -1,8 +1,8 @@
-package de.scaramanga.lily.irc2.connection;
+package de.scaramanga.lily.irc.connection;
 
 import de.scaramanga.lily.core.communication.Answer;
 import de.scaramanga.lily.core.communication.Dispatcher;
-import de.scaramanga.lily.irc2.interfaces.MessageHandler;
+import de.scaramanga.lily.irc.interfaces.MessageHandler;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;

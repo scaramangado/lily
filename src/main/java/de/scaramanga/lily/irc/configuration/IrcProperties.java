@@ -1,4 +1,4 @@
-package de.scaramanga.lily.irc2.configuration;
+package de.scaramanga.lily.irc.configuration;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -7,11 +7,11 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-@ConfigurationProperties("lily.irc2")
+@ConfigurationProperties("lily.irc")
 @Component
 @Getter
 @Setter
-public class Irc2Properties {
+public class IrcProperties {
 
     private boolean enabled = false;
 
