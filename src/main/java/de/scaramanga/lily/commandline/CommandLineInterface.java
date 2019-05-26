@@ -1,36 +1,53 @@
 package de.scaramanga.lily.commandline;
 
+import de.scaramanga.lily.commandline.util.LilyScanner;
 import de.scaramanga.lily.core.communication.Answer;
 import de.scaramanga.lily.core.communication.Dispatcher;
 import de.scaramanga.lily.core.communication.MessageInfo;
 
+import java.io.InputStream;
+import java.io.PrintStream;
 import java.util.Optional;
-import java.util.Scanner;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
-public class CommandLineInterface {
+class CommandLineInterface {
 
     private final Dispatcher dispatcher;
+    private final LilyScanner scanner;
+    private final PrintStream printStream;
 
-    public CommandLineInterface(Dispatcher dispatcher) {
-        this.dispatcher = dispatcher;
+    CommandLineInterface(Dispatcher dispatcher) {
+        this(dispatcher, LilyScanner::new, () -> System.out);
     }
 
-    public void run() {
+    CommandLineInterface(Dispatcher dispatcher, Function<InputStream, LilyScanner> scannerSupplier,
+                         Supplier<PrintStream> printStreamSupplier) {
+        this.dispatcher = dispatcher;
+        this.scanner = scannerSupplier.apply(System.in);
+        this.printStream = printStreamSupplier.get();
+    }
 
-        Scanner scanner = new Scanner(System.in);
+    void run() {
+        run(true);
+    }
+
+    void run(boolean keepAlive) {
+
         boolean interrupted = false;
 
-        while (!interrupted) {
+        String input = scanner.nextLine();
 
-            String input = scanner.nextLine();
+        if (input.equals("quit")) {
+            interrupted = true;
+        }
 
-            if (input.equals("quit")) {
-                interrupted = true;
-            }
+        Optional<Answer> answer = dispatcher.dispatch(input, MessageInfo.empty());
 
-            Optional<Answer> answer = dispatcher.dispatch(input, MessageInfo.empty());
+        answer.map(Answer::getText).ifPresent(printStream::println);
 
-            answer.map(Answer::getText).ifPresent(System.out::println);
+        if (keepAlive && !interrupted) {
+            run(true);
         }
     }
 }

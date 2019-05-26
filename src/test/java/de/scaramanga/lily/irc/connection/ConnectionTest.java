@@ -6,6 +6,7 @@ import de.scaramanga.lily.irc.connection.actions.JoinActionData;
 import de.scaramanga.lily.irc.connection.actions.LeaveActionData;
 import de.scaramanga.lily.irc.interfaces.MessageHandler;
 import de.scaramanga.lily.irc.interfaces.RootMessageHandler;
+import de.scaramanga.lily.testutils.InputStreamMock;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.invocation.InvocationOnMock;
@@ -34,7 +35,7 @@ class ConnectionTest {
     private MessageHandler messageHandlerMock;
     private RootMessageHandler rootHandlerMock;
     private Socket socketMock;
-    private InputStream socketInputStreamMock;
+    private InputStreamMock inputStreamMock;
     private List<String> outputBuffer;
     private List<String> output;
     private Queue<ConnectionAction> actionQueueMock;
@@ -47,8 +48,9 @@ class ConnectionTest {
         actionQueueMock = (Queue<ConnectionAction>) mock(Queue.class);
         messageHandlerMock = mock(MessageHandler.class);
         rootHandlerMock = mock(RootMessageHandler.class);
+        inputStreamMock = InputStreamMock.getInputStreamMock();
         socketMock = mock(Socket.class);
-        socketInputStreamMock = mock(InputStream.class);
+        InputStream socketInputStreamMock = inputStreamMock.getMock();
         OutputStream socketOutputStreamMock = mock(OutputStream.class);
 
         outputBuffer = new ArrayList<>();
@@ -99,7 +101,7 @@ class ConnectionTest {
     @Test
     void sendsMessagesAfterHandling() throws IOException {
 
-        setupInputStream(MESSAGE + CRLF);
+        inputStreamMock.provideLine(MESSAGE + CRLF);
 
         when(messageHandlerMock.handleMessage(MESSAGE)).thenReturn(MessageAnswer.sendLines(STRING_LIST));
         connection.socketSetup();
@@ -109,9 +111,9 @@ class ConnectionTest {
     }
 
     @Test
-    void ignoresMessages() throws IOException {
+    void ignoresMessages() {
 
-        setupInputStream(MESSAGE + CRLF);
+        inputStreamMock.provideLine(MESSAGE + CRLF);
 
         when(messageHandlerMock.handleMessage(MESSAGE)).thenReturn(MessageAnswer.ignoreAnswer());
         connection.call(false, false);
@@ -159,44 +161,10 @@ class ConnectionTest {
         return null;
     }
 
-    private Answer<Void> flushOutputStream(InvocationOnMock invocation) {
+    private Answer<Void> flushOutputStream(@SuppressWarnings("unused") InvocationOnMock invocation) {
 
         output.addAll(outputBuffer);
         outputBuffer.clear();
         return null;
-    }
-
-    private void setupInputStream(String message) throws IOException {
-
-        when(socketInputStreamMock.available()).thenReturn(message.getBytes().length);
-        //noinspection ResultOfMethodCallIgnored
-        doAnswer(invocation -> provideInputStream(message, invocation))
-                .when(socketInputStreamMock).read(any(byte[].class), any(int.class), any(int.class));
-
-        verifyNoMoreInteractions(socketInputStreamMock);
-    }
-
-    private Object provideInputStream(String message, InvocationOnMock invocation) {
-
-        byte[] answerMessage = message.getBytes();
-
-        Object[] args = invocation.getArguments();
-        byte[] bytes = (byte[]) args[0];
-        int startPosition = (int) args[1];
-
-        System.arraycopy(answerMessage, 0, bytes, startPosition, answerMessage.length);
-
-        try {
-            resetInputStream();
-        } catch (IOException e) {
-            // be silent
-        }
-
-        return answerMessage.length;
-    }
-
-    private void resetInputStream() throws IOException {
-        when(socketInputStreamMock.available()).thenReturn(0);
-        when(socketInputStreamMock.read()).thenReturn(0);
     }
 }
