@@ -13,41 +13,44 @@ import java.util.function.Supplier;
 
 class CommandLineInterface {
 
-    private final Dispatcher dispatcher;
-    private final LilyScanner scanner;
-    private final PrintStream printStream;
+  private final Dispatcher  dispatcher;
+  private final LilyScanner scanner;
+  private final PrintStream printStream;
 
-    CommandLineInterface(Dispatcher dispatcher) {
-        this(dispatcher, LilyScanner::new, () -> System.out);
+  CommandLineInterface(Dispatcher dispatcher) {
+
+    this(dispatcher, LilyScanner::new, () -> System.out);
+  }
+
+  CommandLineInterface(Dispatcher dispatcher, Function<InputStream, LilyScanner> scannerSupplier,
+                       Supplier<PrintStream> printStreamSupplier) {
+
+    this.dispatcher  = dispatcher;
+    this.scanner     = scannerSupplier.apply(System.in);
+    this.printStream = printStreamSupplier.get();
+  }
+
+  void run() {
+
+    run(true);
+  }
+
+  void run(boolean keepAlive) {
+
+    boolean interrupted = false;
+
+    String input = scanner.nextLine();
+
+    if (input.equals("quit")) {
+      interrupted = true;
     }
 
-    CommandLineInterface(Dispatcher dispatcher, Function<InputStream, LilyScanner> scannerSupplier,
-                         Supplier<PrintStream> printStreamSupplier) {
-        this.dispatcher = dispatcher;
-        this.scanner = scannerSupplier.apply(System.in);
-        this.printStream = printStreamSupplier.get();
+    Optional<Answer> answer = dispatcher.dispatch(input, MessageInfo.empty());
+
+    answer.map(Answer::getText).ifPresent(printStream::println);
+
+    if (keepAlive && !interrupted) {
+      run(true);
     }
-
-    void run() {
-        run(true);
-    }
-
-    void run(boolean keepAlive) {
-
-        boolean interrupted = false;
-
-        String input = scanner.nextLine();
-
-        if (input.equals("quit")) {
-            interrupted = true;
-        }
-
-        Optional<Answer> answer = dispatcher.dispatch(input, MessageInfo.empty());
-
-        answer.map(Answer::getText).ifPresent(printStream::println);
-
-        if (keepAlive && !interrupted) {
-            run(true);
-        }
-    }
+  }
 }

@@ -8,8 +8,9 @@ import de.scaramanga.lily.core.communication.Command;
 @LilyModule
 public class WhitespaceLilyCommands {
 
-    @LilyCommand("!quote 3")
-    public Answer whitespaceCommand(Command command) {
-        return Answer.ofText("");
-    }
+  @LilyCommand("!quote 3")
+  public Answer whitespaceCommand(Command command) {
+
+    return Answer.ofText("");
+  }
 }

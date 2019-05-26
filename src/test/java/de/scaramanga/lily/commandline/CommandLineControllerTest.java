@@ -9,41 +9,41 @@ import static org.mockito.Mockito.*;
 
 class CommandLineControllerTest {
 
-    private CommandLineController controller;
-    private GenericApplicationContext applicationContextMock;
-    private CommandLineProperties properties;
-    private CommandLineInterface commandLineInterfaceMock;
+  private CommandLineController     controller;
+  private GenericApplicationContext applicationContextMock;
+  private CommandLineProperties     properties;
+  private CommandLineInterface      commandLineInterfaceMock;
 
-    @BeforeEach
-    void setup() {
+  @BeforeEach
+  void setup() {
 
-        applicationContextMock = mock(GenericApplicationContext.class);
-        properties = new CommandLineProperties();
-        commandLineInterfaceMock = mock(CommandLineInterface.class);
+    applicationContextMock   = mock(GenericApplicationContext.class);
+    properties               = new CommandLineProperties();
+    commandLineInterfaceMock = mock(CommandLineInterface.class);
 
-        properties.setEnabled(true);
+    properties.setEnabled(true);
 
-        controller = new CommandLineController(applicationContextMock, properties, () -> commandLineInterfaceMock);
-    }
+    controller = new CommandLineController(applicationContextMock, properties, () -> commandLineInterfaceMock);
+  }
 
-    @Test
-    void registersCommandlineOnStartupBeanWhenActivated() {
+  @Test
+  void registersCommandlineOnStartupBeanWhenActivated() {
 
-        controller.onApplicationEvent(null);
+    controller.onApplicationEvent(null);
 
+    verify(applicationContextMock).registerBean(eq(null), eq(CommandLineInterface.class),
+                                                argThat(supplier -> supplier.get().equals(commandLineInterfaceMock)),
+                                                any());
+    verify(commandLineInterfaceMock).run();
+  }
 
-        verify(applicationContextMock).registerBean(eq(null), eq(CommandLineInterface.class),
-                argThat(supplier -> supplier.get().equals(commandLineInterfaceMock)), any());
-        verify(commandLineInterfaceMock).run();
-    }
+  @Test
+  void doesNotRegisterWhenDeactivated() {
 
-    @Test
-    void doesNotRegisterWhenDeactivated() {
+    properties.setEnabled(false);
 
-        properties.setEnabled(false);
+    controller.onApplicationEvent(null);
 
-        controller.onApplicationEvent(null);
-
-        verifyZeroInteractions(applicationContextMock, commandLineInterfaceMock);
-    }
+    verifyZeroInteractions(applicationContextMock, commandLineInterfaceMock);
+  }
 }

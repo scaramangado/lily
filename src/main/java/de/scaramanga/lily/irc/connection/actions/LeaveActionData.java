@@ -2,20 +2,22 @@ package de.scaramanga.lily.irc.connection.actions;
 
 public class LeaveActionData extends ConnectionActionData {
 
-    private static final String CHANNEL_NAME = "channelName";
+  private static final String CHANNEL_NAME = "channelName";
 
-    public String getChannelName() {
-        return data.getProperty(CHANNEL_NAME);
-    }
+  public String getChannelName() {
 
-    public void setChannelName(String channelName) {
-        data.setProperty(CHANNEL_NAME, channelName);
-    }
+    return data.getProperty(CHANNEL_NAME);
+  }
 
-    public static LeaveActionData withChannelName(String channelName) {
+  public void setChannelName(String channelName) {
 
-        LeaveActionData data = new LeaveActionData();
-        data.setChannelName(channelName);
-        return data;
-    }
+    data.setProperty(CHANNEL_NAME, channelName);
+  }
+
+  public static LeaveActionData withChannelName(String channelName) {
+
+    LeaveActionData data = new LeaveActionData();
+    data.setChannelName(channelName);
+    return data;
+  }
 }

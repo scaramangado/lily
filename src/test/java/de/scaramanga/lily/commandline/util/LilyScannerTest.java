@@ -10,27 +10,26 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class LilyScannerTest {
 
+  private LilyScanner     scanner;
+  private InputStreamMock inputStreamMock;
 
-    private LilyScanner scanner;
-    private InputStreamMock inputStreamMock;
+  @BeforeEach
+  void setup() {
 
-    @BeforeEach
-    void setup() {
+    inputStreamMock = InputStreamMock.getInputStreamMock();
 
-        inputStreamMock = InputStreamMock.getInputStreamMock();
+    scanner = new LilyScanner(inputStreamMock.getMock());
+  }
 
-        scanner = new LilyScanner(inputStreamMock.getMock());
-    }
+  @Test
+  void proxiesNextLine() {
 
-    @Test
-    void proxiesNextLine() {
+    String testLine = UUID.randomUUID().toString();
 
-        String testLine = UUID.randomUUID().toString();
+    inputStreamMock.provideLine(testLine + "\r\n");
 
-        inputStreamMock.provideLine(testLine  + "\r\n");
+    String actual = scanner.nextLine();
 
-        String actual = scanner.nextLine();
-
-        assertThat(actual).isEqualTo(testLine);
-    }
+    assertThat(actual).isEqualTo(testLine);
+  }
 }

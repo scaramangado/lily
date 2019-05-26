@@ -16,155 +16,156 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Queue;
 
 import static de.scaramanga.lily.irc.connection.actions.ConnectionAction.ConnectionActionType.*;
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 class ConnectionTest {
 
-    private static final String HOST = "host";
-    private static final Integer PORT = 1;
-    private static final String CRLF = "\n\r";
-    private static final String CHANNEL = "channel";
-    private static final String MESSAGE = "message";
-    private static final List<String> STRING_LIST = List.of("a", "b", "c");
-    private static final String[] STRING_LIST_LF = new String[] { "a" + CRLF, "b" + CRLF, "c" + CRLF };
+  private static final String                  HOST           = "host";
+  private static final Integer                 PORT           = 1;
+  private static final String                  CRLF           = "\n\r";
+  private static final String                  CHANNEL        = "channel";
+  private static final String                  MESSAGE        = "message";
+  private static final List<String>            STRING_LIST    = List.of("a", "b", "c");
+  private static final String[]                STRING_LIST_LF = new String[]{ "a" + CRLF, "b" + CRLF, "c" + CRLF };
+  private              MessageHandler          messageHandlerMock;
+  private              RootMessageHandler      rootHandlerMock;
+  private              Socket                  socketMock;
+  private              InputStreamMock         inputStreamMock;
+  private              List<String>            outputBuffer;
+  private              List<String>            output;
+  private              Queue<ConnectionAction> actionQueueMock;
+  private              Connection              connection;
 
-    private MessageHandler messageHandlerMock;
-    private RootMessageHandler rootHandlerMock;
-    private Socket socketMock;
-    private InputStreamMock inputStreamMock;
-    private List<String> outputBuffer;
-    private List<String> output;
-    private Queue<ConnectionAction> actionQueueMock;
-    private Connection connection;
+  @BeforeEach
+  void setup() throws IOException {
 
-    @BeforeEach
-    void setup() throws IOException {
+    //noinspection unchecked
+    actionQueueMock    = (Queue<ConnectionAction>) mock(Queue.class);
+    messageHandlerMock = mock(MessageHandler.class);
+    rootHandlerMock    = mock(RootMessageHandler.class);
+    inputStreamMock    = InputStreamMock.getInputStreamMock();
+    socketMock         = mock(Socket.class);
+    InputStream  socketInputStreamMock  = inputStreamMock.getMock();
+    OutputStream socketOutputStreamMock = mock(OutputStream.class);
 
-        //noinspection unchecked
-        actionQueueMock = (Queue<ConnectionAction>) mock(Queue.class);
-        messageHandlerMock = mock(MessageHandler.class);
-        rootHandlerMock = mock(RootMessageHandler.class);
-        inputStreamMock = InputStreamMock.getInputStreamMock();
-        socketMock = mock(Socket.class);
-        InputStream socketInputStreamMock = inputStreamMock.getMock();
-        OutputStream socketOutputStreamMock = mock(OutputStream.class);
+    outputBuffer = new ArrayList<>();
+    output       = new ArrayList<>();
 
-        outputBuffer = new ArrayList<>();
-        output = new ArrayList<>();
+    when(socketMock.getInputStream()).thenReturn(socketInputStreamMock);
+    when(socketMock.getOutputStream()).thenReturn(socketOutputStreamMock);
 
-        when(socketMock.getInputStream()).thenReturn(socketInputStreamMock);
-        when(socketMock.getOutputStream()).thenReturn(socketOutputStreamMock);
+    doCallRealMethod().when(socketOutputStreamMock).write(any(byte[].class));
+    doAnswer(this::writeToBuffer).when(socketOutputStreamMock).write(any(byte[].class), any(int.class), any(int.class));
+    doAnswer(this::flushOutputStream).when(socketOutputStreamMock).flush();
 
-        doCallRealMethod().when(socketOutputStreamMock).write(any(byte[].class));
-        doAnswer(this::writeToBuffer).when(socketOutputStreamMock).write(any(byte[].class), any(int.class), any(int.class));
-        doAnswer(this::flushOutputStream).when(socketOutputStreamMock).flush();
+    connection = new Connection(HOST, PORT, messageHandlerMock, rootHandlerMock, (a, b) -> socketMock, actionQueueMock);
+  }
 
-        connection = new Connection(HOST, PORT, messageHandlerMock, rootHandlerMock, (a, b) -> socketMock, actionQueueMock);
-    }
+  @Test
+  void connectsToServer() {
 
-    @Test
-    void connectsToServer() {
+    when(rootHandlerMock.joinMessages()).thenReturn(STRING_LIST);
 
-        when(rootHandlerMock.joinMessages()).thenReturn(STRING_LIST);
+    connection.call(false, true);
 
-        connection.call(false, true);
+    assertThat(output).containsExactly(STRING_LIST_LF);
+  }
 
-        assertThat(output).containsExactly(STRING_LIST_LF);
-    }
+  @Test
+  void connectsToTheChannel() {
 
-    @Test
-    void connectsToTheChannel() {
+    ConnectionAction join = new ConnectionAction(JOIN, JoinActionData.withChannelName(CHANNEL));
+    when(actionQueueMock.poll()).thenReturn(join).thenReturn(null);
 
-        ConnectionAction join = new ConnectionAction(JOIN, JoinActionData.withChannelName(CHANNEL));
-        when(actionQueueMock.poll()).thenReturn(join).thenReturn(null);
+    connection.call(false, false);
 
-        connection.call(false, false);
+    assertThat(output).containsExactly("JOIN #" + CHANNEL + CRLF);
+  }
 
-        assertThat(output).containsExactly("JOIN #" + CHANNEL + CRLF);
-    }
+  @Test
+  void leavesChannel() {
 
-    @Test
-    void leavesChannel() {
+    ConnectionAction leave = new ConnectionAction(LEAVE, LeaveActionData.withChannelName(CHANNEL));
+    when(actionQueueMock.poll()).thenReturn(leave).thenReturn(null);
 
-        ConnectionAction leave = new ConnectionAction(LEAVE, LeaveActionData.withChannelName(CHANNEL));
-        when(actionQueueMock.poll()).thenReturn(leave).thenReturn(null);
+    connection.call(false, false);
 
-        connection.call(false, false);
+    assertThat(output).containsExactly("PART #" + CHANNEL + CRLF);
+  }
 
-        assertThat(output).containsExactly("PART #" + CHANNEL + CRLF);
-    }
+  @Test
+  void sendsMessagesAfterHandling() throws IOException {
 
-    @Test
-    void sendsMessagesAfterHandling() throws IOException {
+    inputStreamMock.provideLine(MESSAGE + CRLF);
 
-        inputStreamMock.provideLine(MESSAGE + CRLF);
+    when(messageHandlerMock.handleMessage(MESSAGE)).thenReturn(MessageAnswer.sendLines(STRING_LIST));
+    connection.socketSetup();
+    connection.receiveLine();
 
-        when(messageHandlerMock.handleMessage(MESSAGE)).thenReturn(MessageAnswer.sendLines(STRING_LIST));
-        connection.socketSetup();
-        connection.receiveLine();
+    assertThat(output).containsExactly(STRING_LIST_LF);
+  }
 
-        assertThat(output).containsExactly(STRING_LIST_LF);
-    }
+  @Test
+  void ignoresMessages() {
 
-    @Test
-    void ignoresMessages() {
+    inputStreamMock.provideLine(MESSAGE + CRLF);
 
-        inputStreamMock.provideLine(MESSAGE + CRLF);
+    when(messageHandlerMock.handleMessage(MESSAGE)).thenReturn(MessageAnswer.ignoreAnswer());
+    connection.call(false, false);
 
-        when(messageHandlerMock.handleMessage(MESSAGE)).thenReturn(MessageAnswer.ignoreAnswer());
-        connection.call(false, false);
+    assertThat(output).isEmpty();
+  }
 
-        assertThat(output).isEmpty();
-    }
+  @Test
+  void broadcasts() {
 
-    @Test
-    void broadcasts() {
+    ConnectionAction broadcast = new ConnectionAction(BROADCAST, BroadcastActionData.withMessage(MESSAGE));
+    when(actionQueueMock.poll()).thenReturn(broadcast).thenReturn(null);
 
-        ConnectionAction broadcast = new ConnectionAction(BROADCAST, BroadcastActionData.withMessage(MESSAGE));
-        when(actionQueueMock.poll()).thenReturn(broadcast).thenReturn(null);
+    connection.addChannelToList("a");
+    connection.addChannelToList("b");
 
-        connection.addChannelToList("a");
-        connection.addChannelToList("b");
+    connection.call(false, false);
 
-        connection.call(false, false);
+    String messageFormat = "PRIVMSG #%s :" + MESSAGE + CRLF;
 
-        String messageFormat = "PRIVMSG #%s :" + MESSAGE + CRLF;
+    assertThat(output)
+        .containsExactlyInAnyOrder(String.format(messageFormat, "a"), String.format(messageFormat, "b"));
+  }
 
-        assertThat(output)
-                .containsExactlyInAnyOrder(String.format(messageFormat, "a"), String.format(messageFormat, "b"));
-    }
+  @Test
+  void disconnectsFromChannelsAndServer() {
 
-    @Test
-    void disconnectsFromChannelsAndServer() {
+    ConnectionAction join = new ConnectionAction(JOIN, JoinActionData.withChannelName(CHANNEL));
+    when(actionQueueMock.poll()).thenReturn(join).thenReturn(null);
+    connection.call(false, false);
 
-        ConnectionAction join = new ConnectionAction(JOIN, JoinActionData.withChannelName(CHANNEL));
-        when(actionQueueMock.poll()).thenReturn(join).thenReturn(null);
-        connection.call(false, false);
+    output.clear();
 
-        output.clear();
+    ConnectionAction disconnect = new ConnectionAction(DISCONNECT, null);
+    when(actionQueueMock.poll()).thenReturn(disconnect).thenReturn(null);
+    connection.call(false, false);
 
-        ConnectionAction disconnect = new ConnectionAction(DISCONNECT, null);
-        when(actionQueueMock.poll()).thenReturn(disconnect).thenReturn(null);
-        connection.call(false, false);
+    assertThat(output).containsExactly("PART #" + CHANNEL + CRLF, "QUIT" + CRLF);
+  }
 
-        assertThat(output).containsExactly("PART #" + CHANNEL + CRLF, "QUIT" + CRLF);
-    }
+  private Answer<Void> writeToBuffer(InvocationOnMock invocation) {
 
-    private Answer<Void> writeToBuffer(InvocationOnMock invocation) {
+    String line = new String((byte[]) invocation.getArgument(0));
+    outputBuffer.add(line.substring(0, invocation.getArgument(2)));
+    return null;
+  }
 
-        String line = new String((byte[]) invocation.getArgument(0));
-        outputBuffer.add(line.substring(0, invocation.getArgument(2)));
-        return null;
-    }
+  private Answer<Void> flushOutputStream(@SuppressWarnings("unused") InvocationOnMock invocation) {
 
-    private Answer<Void> flushOutputStream(@SuppressWarnings("unused") InvocationOnMock invocation) {
-
-        output.addAll(outputBuffer);
-        outputBuffer.clear();
-        return null;
-    }
+    output.addAll(outputBuffer);
+    outputBuffer.clear();
+    return null;
+  }
 }

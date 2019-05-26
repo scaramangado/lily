@@ -5,22 +5,27 @@ package de.scaramanga.lily.core.exceptions;
  */
 public class LilyRuntimeException extends RuntimeException {
 
-    /**
-     * Constructor.
-     *
-     * @param message The human readable error message.
-     */
-    public LilyRuntimeException(String message) {
-        super(message);
-    }
+  /**
+   * Constructor.
+   *
+   * @param message
+   *     The human readable error message.
+   */
+  public LilyRuntimeException(String message) {
 
-    /**
-     * Constructor.
-     *
-     * @param message The human readable error message.
-     * @param cause The cause of the exception.
-     */
-    public LilyRuntimeException(String message, Throwable cause) {
-        super(message, cause);
-    }
+    super(message);
+  }
+
+  /**
+   * Constructor.
+   *
+   * @param message
+   *     The human readable error message.
+   * @param cause
+   *     The cause of the exception.
+   */
+  public LilyRuntimeException(String message, Throwable cause) {
+
+    super(message, cause);
+  }
 }

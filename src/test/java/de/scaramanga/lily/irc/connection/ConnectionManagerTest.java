@@ -28,138 +28,136 @@ import static org.mockito.Mockito.*;
 @SpringBootTest(classes = IrcProperties.class)
 class ConnectionManagerTest {
 
-    private ConnectionManager manager;
-    private MessageHandler messageHandlerMock = mock(MessageHandler.class);
-    private RootMessageHandler rootMessageHandlerMock = mock(RootMessageHandler.class);
-    private SocketFactory socketFactoryMock = mock(SocketFactory.class);
-    private Queue<ConnectionAction> actionQueue;
-    private IrcProperties properties;
-    private Connection connectionMock = mock(Connection.class);
+  private              ConnectionManager       manager;
+  private              MessageHandler          messageHandlerMock     = mock(MessageHandler.class);
+  private              RootMessageHandler      rootMessageHandlerMock = mock(RootMessageHandler.class);
+  private              SocketFactory           socketFactoryMock      = mock(SocketFactory.class);
+  private              Queue<ConnectionAction> actionQueue;
+  private              IrcProperties           properties;
+  private              Connection              connectionMock         = mock(Connection.class);
+  private static final String                  CHANNEL                = "channel";
+  private static final String                  MESSAGE                = "message";
 
-    private static final String CHANNEL = "channel";
-    private static final String MESSAGE = "message";
+  @BeforeEach
+  void setup() {
 
-    @BeforeEach
-    void setup() {
+    actionQueue = new ConcurrentLinkedQueue<>();
+    properties  = new IrcProperties();
+    properties.setEnabled(true);
+    properties.setChannels(new ArrayList<>());
 
-        actionQueue = new ConcurrentLinkedQueue<>();
-        properties = new IrcProperties();
-        properties.setEnabled(true);
-        properties.setChannels(new ArrayList<>());
+    manager = new ConnectionManager(properties, messageHandlerMock, rootMessageHandlerMock, socketFactoryMock,
+                                    () -> actionQueue, (a, b, c, d, e, f) -> connectionMock);
+  }
 
-        manager = new ConnectionManager(properties, messageHandlerMock, rootMessageHandlerMock, socketFactoryMock,
-                () -> actionQueue, (a, b, c, d, e, f) -> connectionMock);
-    }
+  @Test
+  void runsConnectionThreadOnStartup() {
 
-    @Test
-    void runsConnectionThreadOnStartup() {
+    manager.contextStart(null);
 
-        manager.contextStart(null);
+    verify(connectionMock, timeout(1000)).call();
+  }
 
-        verify(connectionMock, timeout(1000)).call();
-    }
+  @Test
+  void doesNotRunNewConnectionThreadOnRefresh() {
 
-    @Test
-    void doesNotRunNewConnectionThreadOnRefresh() {
+    manager.contextStart(null);
+    manager.contextStart(null);
 
-        manager.contextStart(null);
-        manager.contextStart(null);
+    verify(connectionMock, timeout(1000).times(1)).call();
+    verifyNoMoreInteractions(connectionMock);
+  }
 
-        verify(connectionMock, timeout(1000).times(1)).call();
-        verifyNoMoreInteractions(connectionMock);
-    }
+  @Test
+  void interruptsConnectionThreadOnShutdown() {
 
-    @Test
-    void interruptsConnectionThreadOnShutdown() {
+    manager.contextClose(null);
 
-        manager.contextClose(null);
+    assertDisconnectActionSent();
+  }
 
-        assertDisconnectActionSent();
-    }
+  @Test
+  void doesNotConnectIfDisabled() {
 
-    @Test
-    void doesNotConnectIfDisabled() {
+    properties.setEnabled(false);
+    manager.contextStart(null);
 
-        properties.setEnabled(false);
-        manager.contextStart(null);
+    verifyZeroInteractions(connectionMock);
+  }
 
-        verifyZeroInteractions(connectionMock);
-    }
+  @Test
+  void publishesJoinAction() {
 
-    @Test
-    void publishesJoinAction() {
+    manager.connectToChannel(CHANNEL);
 
-        manager.connectToChannel(CHANNEL);
+    await().atMost(1, TimeUnit.SECONDS).until(() -> actionQueue.peek() != null);
 
-        await().atMost(1, TimeUnit.SECONDS).until(() -> actionQueue.peek() != null);
+    ConnectionAction join = actionQueue.poll();
 
-        ConnectionAction join = actionQueue.poll();
+    SoftAssertions soft = new SoftAssertions();
 
-        SoftAssertions soft = new SoftAssertions();
+    soft.assertThat(join.getType()).isEqualTo(JOIN);
+    soft.assertThat(((JoinActionData) join.getData()).getChannelName()).isEqualTo(CHANNEL);
+    soft.assertThat(actionQueue.poll()).isNull();
 
-        soft.assertThat(join.getType()).isEqualTo(JOIN);
-        soft.assertThat(((JoinActionData) join.getData()).getChannelName()).isEqualTo(CHANNEL);
-        soft.assertThat(actionQueue.poll()).isNull();
+    soft.assertAll();
+  }
 
-        soft.assertAll();
-    }
+  @Test
+  void publishesLeaveAction() {
 
-    @Test
-    void publishesLeaveAction() {
+    manager.leaveChannel(CHANNEL);
 
-        manager.leaveChannel(CHANNEL);
+    await().atMost(1, TimeUnit.SECONDS).until(() -> actionQueue.peek() != null);
 
-        await().atMost(1, TimeUnit.SECONDS).until(() -> actionQueue.peek() != null);
+    ConnectionAction leave = actionQueue.poll();
 
-        ConnectionAction leave = actionQueue.poll();
+    SoftAssertions soft = new SoftAssertions();
 
-        SoftAssertions soft = new SoftAssertions();
+    soft.assertThat(leave.getType()).isEqualTo(LEAVE);
+    soft.assertThat(((LeaveActionData) leave.getData()).getChannelName()).isEqualTo(CHANNEL);
+    soft.assertThat(actionQueue.poll()).isNull();
 
-        soft.assertThat(leave.getType()).isEqualTo(LEAVE);
-        soft.assertThat(((LeaveActionData) leave.getData()).getChannelName()).isEqualTo(CHANNEL);
-        soft.assertThat(actionQueue.poll()).isNull();
+    soft.assertAll();
+  }
 
-        soft.assertAll();
-    }
+  @Test
+  void publishesDisconnectAction() {
 
-    @Test
-    void publishesDisconnectAction() {
+    manager.disconnect();
 
+    assertDisconnectActionSent();
+  }
 
-        manager.disconnect();
+  @Test
+  void publishesBroadcastAction() {
 
-        assertDisconnectActionSent();
-    }
+    manager.broadcast(MESSAGE);
 
-    @Test
-    void publishesBroadcastAction() {
+    await().atMost(1, TimeUnit.SECONDS).until(() -> actionQueue.peek() != null);
 
-        manager.broadcast(MESSAGE);
+    ConnectionAction leave = actionQueue.poll();
 
-        await().atMost(1, TimeUnit.SECONDS).until(() -> actionQueue.peek() != null);
+    SoftAssertions soft = new SoftAssertions();
 
-        ConnectionAction leave = actionQueue.poll();
+    soft.assertThat(leave.getType()).isEqualTo(BROADCAST);
+    soft.assertThat(((BroadcastActionData) leave.getData()).getMessage()).isEqualTo(MESSAGE);
+    soft.assertThat(actionQueue.poll()).isNull();
 
-        SoftAssertions soft = new SoftAssertions();
+    soft.assertAll();
+  }
 
-        soft.assertThat(leave.getType()).isEqualTo(BROADCAST);
-        soft.assertThat(((BroadcastActionData) leave.getData()).getMessage()).isEqualTo(MESSAGE);
-        soft.assertThat(actionQueue.poll()).isNull();
+  private void assertDisconnectActionSent() {
 
-        soft.assertAll();
-    }
+    await().atMost(1, TimeUnit.SECONDS).until(() -> actionQueue.peek() != null);
 
-    private void assertDisconnectActionSent() {
+    ConnectionAction disconnect = actionQueue.poll();
 
-        await().atMost(1, TimeUnit.SECONDS).until(() -> actionQueue.peek() != null);
+    SoftAssertions soft = new SoftAssertions();
 
-        ConnectionAction disconnect = actionQueue.poll();
+    soft.assertThat(disconnect.getType()).isEqualTo(DISCONNECT);
+    soft.assertThat(actionQueue.poll()).isNull();
 
-        SoftAssertions soft = new SoftAssertions();
-
-        soft.assertThat(disconnect.getType()).isEqualTo(DISCONNECT);
-        soft.assertThat(actionQueue.poll()).isNull();
-
-        soft.assertAll();
-    }
+    soft.assertAll();
+  }
 }

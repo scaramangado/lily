@@ -5,22 +5,24 @@ import lombok.Getter;
 @Getter
 public class ConnectionAction {
 
-    private final ConnectionActionType type;
-    private final ConnectionActionData data;
+  private final ConnectionActionType type;
+  private final ConnectionActionData data;
 
-    public ConnectionAction(ConnectionActionType type) {
-        this(type, ConnectionActionData.empty());
-    }
+  public ConnectionAction(ConnectionActionType type) {
 
-    public ConnectionAction(ConnectionActionType type, ConnectionActionData data) {
-        this.type = type;
-        this.data = data;
-    }
+    this(type, ConnectionActionData.empty());
+  }
 
-    public enum ConnectionActionType {
-        JOIN,
-        LEAVE,
-        BROADCAST,
-        DISCONNECT
-    }
+  public ConnectionAction(ConnectionActionType type, ConnectionActionData data) {
+
+    this.type = type;
+    this.data = data;
+  }
+
+  public enum ConnectionActionType {
+    JOIN,
+    LEAVE,
+    BROADCAST,
+    DISCONNECT
+  }
 }

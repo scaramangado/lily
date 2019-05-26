@@ -8,19 +8,21 @@ import de.scaramanga.lily.core.communication.Command;
 @LilyModule
 public class InvalidLilyCommands {
 
-    @LilyCommand("noArgument")
-    public Answer noArgument() {
-        return Answer.ofText("");
-    }
+  @LilyCommand("noArgument")
+  public Answer noArgument() {
 
-    @LilyCommand("noStringReturned")
-    public void noStringReturned(Command command) { }
+    return Answer.ofText("");
+  }
 
-    @LilyCommand("wrongTypeOfArgument")
-    public Answer wrongTypeOfArgument(String[] args) { return Answer.ofText(""); }
+  @LilyCommand("noStringReturned")
+  public void noStringReturned(Command command) { }
 
-    @LilyCommand("wrongReturnType")
-    public String wrongReturnType(Command command) {
-        return "";
-    }
+  @LilyCommand("wrongTypeOfArgument")
+  public Answer wrongTypeOfArgument(String[] args) { return Answer.ofText(""); }
+
+  @LilyCommand("wrongReturnType")
+  public String wrongReturnType(Command command) {
+
+    return "";
+  }
 }

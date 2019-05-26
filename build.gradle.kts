@@ -1,63 +1,63 @@
 plugins {
-   `java-library`
+  `java-library`
 }
 
 group = "de.scaramanga"
 version = "1.0-SNAPSHOT"
 
 repositories {
-    mavenCentral()
+  mavenCentral()
 }
 
 dependencies {
 
-    api("org.springframework.boot:spring-boot-starter:2.1.2.RELEASE")
+  api("org.springframework.boot:spring-boot-starter:2.1.2.RELEASE")
 
-    implementation("org.reflections:reflections:0.9.11")
+  implementation("org.reflections:reflections:0.9.11")
 
-    lombok("1.18.4")
+  lombok("1.18.4")
 
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.4.0")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.4.0")
+  testImplementation("org.junit.jupiter:junit-jupiter-api:5.4.0")
+  testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.4.0")
 
-    testImplementation("org.springframework.boot:spring-boot-starter-test:2.1.2.RELEASE") {
-        exclude(module = "junit")
-        exclude(module = "hamcrest-library")
-        exclude(module = "hamcrest-core")
-        exclude(module = "json-path")
-        exclude(module = "jsonassert")
-        exclude(module = "xmlunit-core")
-    }
+  testImplementation("org.springframework.boot:spring-boot-starter-test:2.1.2.RELEASE") {
+    exclude(module = "junit")
+    exclude(module = "hamcrest-library")
+    exclude(module = "hamcrest-core")
+    exclude(module = "json-path")
+    exclude(module = "jsonassert")
+    exclude(module = "xmlunit-core")
+  }
 
-    testImplementation("org.assertj:assertj-core:3.11.1")
-    testImplementation("org.awaitility:awaitility:3.1.6")
+  testImplementation("org.assertj:assertj-core:3.11.1")
+  testImplementation("org.awaitility:awaitility:3.1.6")
 }
 
 tasks.withType(Test::class) {
-    useJUnitPlatform()
+  useJUnitPlatform()
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
+  sourceCompatibility = JavaVersion.VERSION_1_8
+  targetCompatibility = JavaVersion.VERSION_1_8
 }
 
 tasks.compileTestJava {
-    sourceCompatibility = JavaVersion.VERSION_11.toString()
-    targetCompatibility = JavaVersion.VERSION_11.toString()
+  sourceCompatibility = JavaVersion.VERSION_11.toString()
+  targetCompatibility = JavaVersion.VERSION_11.toString()
 }
 
 tasks.withType(Wrapper::class) {
-    gradleVersion = "5.1.1"
+  gradleVersion = "5.1.1"
 }
 
 fun DependencyHandler.lombok(version: Any) {
 
-    val dependencyNotation = "org.projectlombok:lombok:$version"
+  val dependencyNotation = "org.projectlombok:lombok:$version"
 
-    implementation(dependencyNotation)
-    testImplementation(dependencyNotation)
+  implementation(dependencyNotation)
+  testImplementation(dependencyNotation)
 
-    annotationProcessor(dependencyNotation)
-    testAnnotationProcessor(dependencyNotation)
+  annotationProcessor(dependencyNotation)
+  testAnnotationProcessor(dependencyNotation)
 }

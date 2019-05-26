@@ -5,8 +5,8 @@ import de.scaramanga.lily.irc.connection.actions.BroadcastActionData;
 import de.scaramanga.lily.irc.connection.actions.ConnectionAction;
 import de.scaramanga.lily.irc.connection.actions.JoinActionData;
 import de.scaramanga.lily.irc.connection.actions.LeaveActionData;
-import de.scaramanga.lily.irc.interfaces.RootMessageHandler;
 import de.scaramanga.lily.irc.interfaces.MessageHandler;
+import de.scaramanga.lily.irc.interfaces.RootMessageHandler;
 import de.scaramanga.lily.irc.interfaces.SocketFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.ContextClosedEvent;
@@ -26,70 +26,78 @@ import static de.scaramanga.lily.irc.connection.actions.ConnectionAction.Connect
 @Component
 public class ConnectionManager {
 
-    private final IrcProperties properties;
-    private final MessageHandler messageHandler;
-    private final RootMessageHandler rootMessageHandler;
-    private final SocketFactory socketFactory;
-    private final ExecutorService executor = Executors.newCachedThreadPool();
-    private final AtomicBoolean connected = new AtomicBoolean(false);
-    private final Queue<ConnectionAction> actionQueue;
-    private final ConnectionFactory connectionFactory;
+  private final IrcProperties           properties;
+  private final MessageHandler          messageHandler;
+  private final RootMessageHandler      rootMessageHandler;
+  private final SocketFactory           socketFactory;
+  private final ExecutorService         executor  = Executors.newCachedThreadPool();
+  private final AtomicBoolean           connected = new AtomicBoolean(false);
+  private final Queue<ConnectionAction> actionQueue;
+  private final ConnectionFactory       connectionFactory;
 
-    ConnectionManager(IrcProperties properties, MessageHandler messageHandler,
-                      RootMessageHandler rootMessageHandler, SocketFactory socketFactory,
-                      Supplier<Queue<ConnectionAction>> actionQueueSupplier, ConnectionFactory connectionFactory) {
-        this.properties = properties;
-        this.messageHandler = messageHandler;
-        this.rootMessageHandler = rootMessageHandler;
-        this.socketFactory = socketFactory;
-        this.actionQueue = actionQueueSupplier.get();
-        this.connectionFactory = connectionFactory;
+  ConnectionManager(IrcProperties properties, MessageHandler messageHandler,
+                    RootMessageHandler rootMessageHandler, SocketFactory socketFactory,
+                    Supplier<Queue<ConnectionAction>> actionQueueSupplier, ConnectionFactory connectionFactory) {
+
+    this.properties         = properties;
+    this.messageHandler     = messageHandler;
+    this.rootMessageHandler = rootMessageHandler;
+    this.socketFactory      = socketFactory;
+    this.actionQueue        = actionQueueSupplier.get();
+    this.connectionFactory  = connectionFactory;
+  }
+
+  @Autowired
+  public ConnectionManager(IrcProperties properties, MessageHandler messageHandler,
+                           RootMessageHandler rootMessageHandler, SocketFactory socketFactory) {
+
+    this(properties, messageHandler, rootMessageHandler, socketFactory, ConcurrentLinkedQueue::new,
+         ConnectionFactory.standardFactory());
+  }
+
+  @EventListener
+  public void contextStart(ContextRefreshedEvent event) {
+
+    if (!properties.isEnabled() || connected.get()) {
+      return;
     }
 
-    @Autowired
-    public ConnectionManager(IrcProperties properties, MessageHandler messageHandler,
-                             RootMessageHandler rootMessageHandler, SocketFactory socketFactory) {
-        this(properties, messageHandler, rootMessageHandler, socketFactory, ConcurrentLinkedQueue::new,
-                ConnectionFactory.standardFactory());
-    }
+    executor.submit(connectionFactory.getConnection(properties.getHost(), properties.getPort(), messageHandler,
+                                                    rootMessageHandler, socketFactory, actionQueue));
+    connected.set(true);
 
-    @EventListener
-    public void contextStart(ContextRefreshedEvent event) {
+    properties.getChannels().forEach(this::connectToChannel);
+  }
 
-        if (!properties.isEnabled() || connected.get()) {
-            return;
-        }
+  @EventListener
+  public void contextClose(ContextClosedEvent event) {
 
-        executor.submit(connectionFactory.getConnection(properties.getHost(), properties.getPort(), messageHandler,
-                rootMessageHandler, socketFactory, actionQueue));
-        connected.set(true);
+    disconnect();
+  }
 
-        properties.getChannels().forEach(this::connectToChannel);
-    }
+  public void connectToChannel(String channel) {
 
-    @EventListener
-    public void contextClose(ContextClosedEvent event) {
-        disconnect();
-    }
+    sendAction(new ConnectionAction(JOIN, JoinActionData.withChannelName(channel)));
+  }
 
-    public void connectToChannel(String channel) {
-        sendAction(new ConnectionAction(JOIN, JoinActionData.withChannelName(channel)));
-    }
+  public void leaveChannel(String channel) {
 
-    public void leaveChannel(String channel) {
-        sendAction(new ConnectionAction(LEAVE, LeaveActionData.withChannelName(channel)));
-    }
+    sendAction(new ConnectionAction(LEAVE, LeaveActionData.withChannelName(channel)));
+  }
 
-    public void broadcast(String message) {
-        sendAction(new ConnectionAction(BROADCAST, BroadcastActionData.withMessage(message)));
-    }
+  public void broadcast(String message) {
 
-    public void disconnect() {
-        sendAction(new ConnectionAction(DISCONNECT));
-        connected.set(false);
-    }
+    sendAction(new ConnectionAction(BROADCAST, BroadcastActionData.withMessage(message)));
+  }
 
-    private void sendAction(ConnectionAction action) {
-        executor.submit(() -> actionQueue.add(action));
-    }
+  public void disconnect() {
+
+    sendAction(new ConnectionAction(DISCONNECT));
+    connected.set(false);
+  }
+
+  private void sendAction(ConnectionAction action) {
+
+    executor.submit(() -> actionQueue.add(action));
+  }
 }

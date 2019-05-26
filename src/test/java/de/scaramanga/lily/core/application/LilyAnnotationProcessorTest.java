@@ -17,85 +17,85 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 class LilyAnnotationProcessorTest {
 
-    @Test
-    void correctlyCollectsValidCommands() throws Exception {
+  @Test
+  void correctlyCollectsValidCommands() throws Exception {
 
-        Map<String, Method> commands = getCommandsOfClasses(ValidLilyCommands.class);
+    Map<String, Method> commands = getCommandsOfClasses(ValidLilyCommands.class);
 
-        SoftAssertions soft = new SoftAssertions();
+    SoftAssertions soft = new SoftAssertions();
 
-        soft.assertThat(commands.size())
-                .as(String.format("The number of detected commands is wrong. Detected Methods: %s",
-                        commands.values().stream().map(Method::getName).collect(Collectors.joining(", "))))
-                .isEqualTo(3);
+    soft.assertThat(commands.size())
+        .as(String.format("The number of detected commands is wrong. Detected Methods: %s",
+                          commands.values().stream().map(Method::getName).collect(Collectors.joining(", "))))
+        .isEqualTo(3);
 
-        Map<String, String> expectedResults = new HashMap<>();
-        expectedResults.put(ValidLilyCommands.COMMAND_ONE, ValidLilyCommands.RESULT_ONE);
-        expectedResults.put(ValidLilyCommands.COMMAND_TWO1, ValidLilyCommands.RESULT_TWO);
-        expectedResults.put(ValidLilyCommands.COMMAND_TWO2, ValidLilyCommands.RESULT_TWO);
+    Map<String, String> expectedResults = new HashMap<>();
+    expectedResults.put(ValidLilyCommands.COMMAND_ONE, ValidLilyCommands.RESULT_ONE);
+    expectedResults.put(ValidLilyCommands.COMMAND_TWO1, ValidLilyCommands.RESULT_TWO);
+    expectedResults.put(ValidLilyCommands.COMMAND_TWO2, ValidLilyCommands.RESULT_TWO);
 
-        for (Entry<String, String> methodCall : expectedResults.entrySet()) {
+    for (Entry<String, String> methodCall : expectedResults.entrySet()) {
 
-            Method method = commands.get(methodCall.getKey());
-            Object invocationResult = method.invoke(new ValidLilyCommands(), Mockito.mock(Command.class));
-            Answer result = (Answer) invocationResult;
+      Method method           = commands.get(methodCall.getKey());
+      Object invocationResult = method.invoke(new ValidLilyCommands(), Mockito.mock(Command.class));
+      Answer result           = (Answer) invocationResult;
 
-            soft.assertThat(result.getText())
-                    .as("Invocation did not yield the expected result.")
-                    .isEqualTo(methodCall.getValue());
-        }
-
-        soft.assertAll();
+      soft.assertThat(result.getText())
+          .as("Invocation did not yield the expected result.")
+          .isEqualTo(methodCall.getValue());
     }
 
-    @Test
-    void doesNotBindToExistingCommand() {
+    soft.assertAll();
+  }
 
-        Map<String, Method> commands = getCommandsOfClasses(DuplicateLilyCommands.class);
+  @Test
+  void doesNotBindToExistingCommand() {
 
-        assertThat(commands.size())
-                .as("Registered duplicate commands.")
-                .isEqualTo(1);
-    }
+    Map<String, Method> commands = getCommandsOfClasses(DuplicateLilyCommands.class);
 
-    @Test
-    void doesNotBindCommandsToMethodWithInvalidSignature() {
+    assertThat(commands.size())
+        .as("Registered duplicate commands.")
+        .isEqualTo(1);
+  }
 
-        Map<String, Method> commands = getCommandsOfClasses(InvalidLilyCommands.class);
+  @Test
+  void doesNotBindCommandsToMethodWithInvalidSignature() {
 
-        assertThat(commands.size())
-                .as(String.format("Bound the method(s) with invalid signature: %s",
-                        commands.values().stream().map(Method::getName).collect(Collectors.joining(", "))))
-                .isEqualTo(0);
-    }
+    Map<String, Method> commands = getCommandsOfClasses(InvalidLilyCommands.class);
 
-    @Test
-    void collectsAllValidCommandsFromPackage() {
+    assertThat(commands.size())
+        .as(String.format("Bound the method(s) with invalid signature: %s",
+                          commands.values().stream().map(Method::getName).collect(Collectors.joining(", "))))
+        .isEqualTo(0);
+  }
 
-        Map<String, Method> commands =
-                LilyAnnotationProcessor.getAllLilyCommands("de.scaramanga.lily.core.testmodules");
+  @Test
+  void collectsAllValidCommandsFromPackage() {
 
-        assertThat(commands.size())
-                .as("The number of collected commands is incorrect.")
-                .isEqualTo(4);
-    }
+    Map<String, Method> commands =
+        LilyAnnotationProcessor.getAllLilyCommands("de.scaramanga.lily.core.testmodules");
 
-    @Test
-    void doesNotBindToCommandWithWhitespace() {
+    assertThat(commands.size())
+        .as("The number of collected commands is incorrect.")
+        .isEqualTo(4);
+  }
 
-        Map<String, Method> commands = getCommandsOfClasses(WhitespaceLilyCommands.class);
+  @Test
+  void doesNotBindToCommandWithWhitespace() {
 
-        assertThat(commands.size())
-                .as("Bound command with whitespace.")
-                .isEqualTo(0);
-    }
+    Map<String, Method> commands = getCommandsOfClasses(WhitespaceLilyCommands.class);
 
-    private Map<String, Method> getCommandsOfClasses(Class<?>... classes) {
+    assertThat(commands.size())
+        .as("Bound command with whitespace.")
+        .isEqualTo(0);
+  }
 
-        return LilyAnnotationProcessor.getAllLilyCommands(Set.of(classes));
-    }
+  private Map<String, Method> getCommandsOfClasses(Class<?>... classes) {
+
+    return LilyAnnotationProcessor.getAllLilyCommands(Set.of(classes));
+  }
 }

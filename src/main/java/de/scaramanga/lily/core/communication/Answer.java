@@ -2,22 +2,24 @@ package de.scaramanga.lily.core.communication;
 
 public interface Answer<T extends AnswerInfo> {
 
-    String getText();
+  String getText();
 
-    T getAnswerInfo();
+  T getAnswerInfo();
 
-    static Answer<AnswerInfo> ofText(String text) {
+  static Answer<AnswerInfo> ofText(String text) {
 
-        return new Answer<AnswerInfo>() {
-            @Override
-            public String getText() {
-                return text;
-            }
+    return new Answer<AnswerInfo>() {
+      @Override
+      public String getText() {
 
-            @Override
-            public AnswerInfo getAnswerInfo() {
-                return AnswerInfo.empty();
-            }
-        };
-    }
+        return text;
+      }
+
+      @Override
+      public AnswerInfo getAnswerInfo() {
+
+        return AnswerInfo.empty();
+      }
+    };
+  }
 }

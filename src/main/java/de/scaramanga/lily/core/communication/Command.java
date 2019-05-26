@@ -2,59 +2,69 @@ package de.scaramanga.lily.core.communication;
 
 public interface Command {
 
-    String getName();
+  String getName();
 
-    int getArgumentCount();
+  int getArgumentCount();
 
-    String getArgument(int i);
+  String getArgument(int i);
 
-    MessageInfo getMessageInfo();
+  MessageInfo getMessageInfo();
 
-    static Command ofName(String command) {
-        return new Command() {
-            @Override
-            public String getName() {
-                return command;
-            }
+  static Command ofName(String command) {
 
-            @Override
-            public int getArgumentCount() {
-                return 0;
-            }
+    return new Command() {
+      @Override
+      public String getName() {
 
-            @Override
-            public String getArgument(int i) {
-                throw new IndexOutOfBoundsException(String.format("Index %d bigger than maximum 0.", i));
-            }
+        return command;
+      }
 
-            @Override
-            public MessageInfo getMessageInfo() {
-                return MessageInfo.empty();
-            }
-        };
-    }
+      @Override
+      public int getArgumentCount() {
 
-    static Command withMessageInfo(String command, MessageInfo info) {
-        return new Command() {
-            @Override
-            public String getName() {
-                return command;
-            }
+        return 0;
+      }
 
-            @Override
-            public int getArgumentCount() {
-                return 0;
-            }
+      @Override
+      public String getArgument(int i) {
 
-            @Override
-            public String getArgument(int i) {
-                throw new IndexOutOfBoundsException(String.format("Index %d bigger than maximum 0.", i));
-            }
+        throw new IndexOutOfBoundsException(String.format("Index %d bigger than maximum 0.", i));
+      }
 
-            @Override
-            public MessageInfo getMessageInfo() {
-                return info;
-            }
-        };
-    }
+      @Override
+      public MessageInfo getMessageInfo() {
+
+        return MessageInfo.empty();
+      }
+    };
+  }
+
+  static Command withMessageInfo(String command, MessageInfo info) {
+
+    return new Command() {
+      @Override
+      public String getName() {
+
+        return command;
+      }
+
+      @Override
+      public int getArgumentCount() {
+
+        return 0;
+      }
+
+      @Override
+      public String getArgument(int i) {
+
+        throw new IndexOutOfBoundsException(String.format("Index %d bigger than maximum 0.", i));
+      }
+
+      @Override
+      public MessageInfo getMessageInfo() {
+
+        return info;
+      }
+    };
+  }
 }

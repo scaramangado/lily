@@ -13,15 +13,10 @@ import java.util.List;
 @Setter
 public class IrcProperties {
 
-    private boolean enabled = false;
-
-    private String host = null;
-
-    private Integer port = 6667;
-
-    private String username = null;
-
-    private String password = null;
-
-    private List<String> channels = null;
+  private boolean      enabled  = false;
+  private String       host     = null;
+  private Integer      port     = 6667;
+  private String       username = null;
+  private String       password = null;
+  private List<String> channels = null;
 }

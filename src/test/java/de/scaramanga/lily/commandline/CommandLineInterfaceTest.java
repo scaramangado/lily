@@ -13,56 +13,55 @@ import static org.mockito.Mockito.*;
 
 class CommandLineInterfaceTest {
 
+  private CommandLineInterface commandLineInterface;
+  private Dispatcher           dispatcherMock;
+  private LilyScanner          scannerMock;
+  private PrintStream          printStreamMock;
 
-    private CommandLineInterface commandLineInterface;
-    private Dispatcher dispatcherMock;
-    private LilyScanner scannerMock;
-    private PrintStream printStreamMock;
+  @BeforeEach
+  void setup() {
 
-    @BeforeEach
-    void setup() {
+    dispatcherMock  = mock(Dispatcher.class);
+    scannerMock     = mock(LilyScanner.class);
+    printStreamMock = mock(PrintStream.class);
 
-        dispatcherMock = mock(Dispatcher.class);
-        scannerMock = mock(LilyScanner.class);
-        printStreamMock = mock(PrintStream.class);
+    commandLineInterface = new CommandLineInterface(dispatcherMock, i -> scannerMock, () -> printStreamMock);
+  }
 
-        commandLineInterface = new CommandLineInterface(dispatcherMock, i -> scannerMock, () -> printStreamMock);
-    }
+  @Test
+  void runsUntilQuit() {
 
-    @Test
-    void runsUntilQuit() {
+    when(scannerMock.nextLine()).thenReturn("test").thenReturn("test").thenReturn("quit");
+    when(dispatcherMock.dispatch(any(), any())).thenReturn(Optional.empty());
+    commandLineInterface.run();
 
-        when(scannerMock.nextLine()).thenReturn("test").thenReturn("test").thenReturn("quit");
-        when(dispatcherMock.dispatch(any(), any())).thenReturn(Optional.empty());
-        commandLineInterface.run();
+    verify(scannerMock, times(3)).nextLine();
+  }
 
-        verify(scannerMock, times(3)).nextLine();
-    }
+  @Test
+  void printsAnswer() {
 
-    @Test
-    void printsAnswer() {
+    String message = "test";
+    String answer  = "answer";
 
-        String message = "test";
-        String answer = "answer";
+    when(scannerMock.nextLine()).thenReturn(message);
+    when(dispatcherMock.dispatch(eq(message), any())).thenReturn(Optional.of(Answer.ofText(answer)));
 
-        when(scannerMock.nextLine()).thenReturn(message);
-        when(dispatcherMock.dispatch(eq(message), any())).thenReturn(Optional.of(Answer.ofText(answer)));
+    commandLineInterface.run(false);
 
-        commandLineInterface.run(false);
+    verify(printStreamMock).println(answer);
+  }
 
-        verify(printStreamMock).println(answer);
-    }
+  @Test
+  void doesNotPrintEmptyAnswer() {
 
-    @Test
-    void doesNotPrintEmptyAnswer() {
+    String message = "test";
 
-        String message = "test";
+    when(scannerMock.nextLine()).thenReturn(message);
+    when(dispatcherMock.dispatch(eq(message), any())).thenReturn(Optional.empty());
 
-        when(scannerMock.nextLine()).thenReturn(message);
-        when(dispatcherMock.dispatch(eq(message), any())).thenReturn(Optional.empty());
+    commandLineInterface.run(false);
 
-        commandLineInterface.run(false);
-
-        verifyZeroInteractions(printStreamMock);
-    }
+    verifyZeroInteractions(printStreamMock);
+  }
 }

@@ -7,18 +7,20 @@ import java.util.List;
  */
 public interface RootMessageHandler {
 
-    /**
-     * Retrieves the answers to a received root message.
-     *
-     * @param rootMessage the root message.
-     * @return the answers as a list of strings.
-     */
-    List<String> answer(String rootMessage);
+  /**
+   * Retrieves the answers to a received root message.
+   *
+   * @param rootMessage
+   *     the root message.
+   *
+   * @return the answers as a list of strings.
+   */
+  List<String> answer(String rootMessage);
 
-    /**
-     * Retrieves the messages that should be sent to the IRC server upon entering.
-     *
-     * @return the messages as a list of strings.
-     */
-    List<String> joinMessages();
+  /**
+   * Retrieves the messages that should be sent to the IRC server upon entering.
+   *
+   * @return the messages as a list of strings.
+   */
+  List<String> joinMessages();
 }

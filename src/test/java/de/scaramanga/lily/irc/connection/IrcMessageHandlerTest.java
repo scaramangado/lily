@@ -13,73 +13,74 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import java.util.Optional;
 
 import static de.scaramanga.lily.irc.connection.MessageAnswer.AnswerType.*;
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = { IrcMessageHandler.class, IrcMessageHandlerTest.IrcMessageHandlerTestConfiguration.class })
 class IrcMessageHandlerTest {
 
-    private IrcMessageHandler messageHandler;
-    private Dispatcher dispatcher;
+  private              IrcMessageHandler messageHandler;
+  private              Dispatcher        dispatcher;
+  private static final String            PING     = "PING :abc";
+  private static final String            PONG     = "PONG :abc";
+  private static final String            UNKNOWN  = "abc";
+  private static final String            DISPATCH = ":user!user@user.tld PRIVMSG #channel :abc";
+  private static final String            ANSWER   = "PRIVMSG #channel :def";
 
-    private static final String PING = "PING :abc";
-    private static final String PONG = "PONG :abc";
-    private static final String UNKNOWN = "abc";
-    private static final String DISPATCH = ":user!user@user.tld PRIVMSG #channel :abc";
-    private static final String ANSWER = "PRIVMSG #channel :def";
+  @Autowired
+  public IrcMessageHandlerTest(IrcMessageHandler messageHandler, Dispatcher dispatcher) {
 
-    @Autowired
-    public IrcMessageHandlerTest(IrcMessageHandler messageHandler, Dispatcher dispatcher) {
-        this.messageHandler = messageHandler;
-        this.dispatcher = dispatcher;
+    this.messageHandler = messageHandler;
+    this.dispatcher     = dispatcher;
+  }
+
+  @Configuration
+  public static class IrcMessageHandlerTestConfiguration {
+
+    @Bean
+    public Dispatcher dispatcher() {
+
+      return mock(Dispatcher.class);
     }
+  }
 
-    @Configuration
-    public static class IrcMessageHandlerTestConfiguration {
+  @Test
+  void pongsWhenPinged() {
 
-        @Bean
-        public Dispatcher dispatcher() {
-            return mock(Dispatcher.class);
-        }
-    }
+    MessageAnswer pong = messageHandler.handleMessage(PING);
 
-    @Test
-    void pongsWhenPinged() {
+    assertThat(pong.getAnswerType()).isEqualTo(SEND_LINES);
+    assertThat(pong.getLines()).containsExactly(PONG);
+  }
 
-        MessageAnswer pong = messageHandler.handleMessage(PING);
+  @Test
+  void ignoresUnknownPattern() {
 
-        assertThat(pong.getAnswerType()).isEqualTo(SEND_LINES);
-        assertThat(pong.getLines()).containsExactly(PONG);
-    }
+    MessageAnswer ignore = messageHandler.handleMessage(UNKNOWN);
 
-    @Test
-    void ignoresUnknownPattern() {
+    assertThat(ignore.getAnswerType()).isEqualTo(IGNORE);
+  }
 
-        MessageAnswer ignore = messageHandler.handleMessage(UNKNOWN);
+  @Test
+  void dispatchesMessageAndResponds() {
 
-        assertThat(ignore.getAnswerType()).isEqualTo(IGNORE);
-    }
+    when(dispatcher.dispatch("abc", null)).thenReturn(Optional.of(Answer.ofText("def")));
 
-    @Test
-    void dispatchesMessageAndResponds() {
+    MessageAnswer answer = messageHandler.handleMessage(DISPATCH);
 
-        when(dispatcher.dispatch("abc", null)).thenReturn(Optional.of(Answer.ofText("def")));
+    assertThat(answer.getAnswerType()).isEqualTo(SEND_LINES);
+    assertThat(answer.getLines()).containsExactly(ANSWER);
+  }
 
-        MessageAnswer answer = messageHandler.handleMessage(DISPATCH);
+  @Test
+  void dispatchesMessageAndIgnores() {
 
-        assertThat(answer.getAnswerType()).isEqualTo(SEND_LINES);
-        assertThat(answer.getLines()).containsExactly(ANSWER);
-    }
+    when(dispatcher.dispatch("abc", null))
+        .thenReturn(Optional.empty());
 
-    @Test
-    void dispatchesMessageAndIgnores() {
+    MessageAnswer ignore = messageHandler.handleMessage(DISPATCH);
 
-        when(dispatcher.dispatch("abc", null))
-                .thenReturn(Optional.empty());
-
-        MessageAnswer ignore = messageHandler.handleMessage(DISPATCH);
-
-        assertThat(ignore.getAnswerType()).isEqualTo(IGNORE);
-    }
+    assertThat(ignore.getAnswerType()).isEqualTo(IGNORE);
+  }
 }

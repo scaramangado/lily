@@ -11,5 +11,5 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties("lily")
 public class LilyConfiguration {
 
-    private String commandPrefix = "!";
+  private String commandPrefix = "!";
 }

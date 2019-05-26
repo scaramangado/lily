@@ -9,10 +9,11 @@ import java.util.Queue;
 
 interface ConnectionFactory {
 
-    Connection getConnection(String host, Integer port, MessageHandler messageHandler, RootMessageHandler rootHandler,
-                             SocketFactory socketFactory, Queue<ConnectionAction> actionQueue);
+  Connection getConnection(String host, Integer port, MessageHandler messageHandler, RootMessageHandler rootHandler,
+                           SocketFactory socketFactory, Queue<ConnectionAction> actionQueue);
 
-    static ConnectionFactory standardFactory() {
-        return Connection::new;
-    }
+  static ConnectionFactory standardFactory() {
+
+    return Connection::new;
+  }
 }

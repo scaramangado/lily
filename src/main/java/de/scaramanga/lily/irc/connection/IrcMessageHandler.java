@@ -13,62 +13,64 @@ import java.util.function.Function;
 @Component
 public class IrcMessageHandler implements MessageHandler {
 
-    private final Dispatcher dispatcher;
-    private Map<String, Function<String, MessageAnswer>> functionMap;
+  private final Dispatcher                                   dispatcher;
+  private       Map<String, Function<String, MessageAnswer>> functionMap;
 
-    public IrcMessageHandler(Dispatcher dispatcher) {
-        this.dispatcher = dispatcher;
+  public IrcMessageHandler(Dispatcher dispatcher) {
+
+    this.dispatcher = dispatcher;
+  }
+
+  private Map<String, Function<String, MessageAnswer>> getFunctionMap() {
+
+    if (functionMap != null) {
+      return functionMap;
     }
 
-    private Map<String, Function<String, MessageAnswer>> getFunctionMap() {
+    final String PRIVMSG_REGEX = ":\\w+!\\w[\\w@.]+ PRIVMSG #\\w+ :.*";
+    final String PING_REGEX    = "PING :.*";
 
-        if (functionMap != null) {
-            return functionMap;
-        }
+    functionMap = new HashMap<>();
+    functionMap.put(PRIVMSG_REGEX, this::privateMessage);
+    functionMap.put(PING_REGEX, this::ping);
 
-        final String PRIVMSG_REGEX = ":\\w+!\\w[\\w@.]+ PRIVMSG #\\w+ :.*";
-        final String PING_REGEX = "PING :.*";
+    return functionMap;
+  }
 
-        functionMap = new HashMap<>();
-        functionMap.put(PRIVMSG_REGEX, this::privateMessage);
-        functionMap.put(PING_REGEX, this::ping);
+  private MessageAnswer privateMessage(String message) {
 
-        return functionMap;
-    }
+    String[] parts       = message.split(":");
+    String   chatMessage = parts[2];
 
-    private MessageAnswer privateMessage(String message) {
+    return dispatcher
+        .dispatch(chatMessage, null)
+        .map(Answer::getText)
+        .map(answerString -> composeMessageAnswer(answerString, parts))
+        .orElse(MessageAnswer.ignoreAnswer());
+  }
 
-        String[] parts = message.split(":");
-        String chatMessage = parts[2];
+  private MessageAnswer composeMessageAnswer(String answerString, String[] originalMessageParts) {
 
-        return dispatcher
-                .dispatch(chatMessage, null)
-                .map(Answer::getText)
-                .map(answerString -> composeMessageAnswer(answerString, parts))
-                .orElse(MessageAnswer.ignoreAnswer());
-    }
+    String[] messageSourceParts = originalMessageParts[1].split("PRIVMSG ");
 
-    private MessageAnswer composeMessageAnswer(String answerString, String[] originalMessageParts) {
+    return MessageAnswer.sendLines("PRIVMSG " + messageSourceParts[1] + ":" + answerString);
+  }
 
-        String[] messageSourceParts = originalMessageParts[1].split("PRIVMSG ");
+  private MessageAnswer ping(String message) {
 
-        return MessageAnswer.sendLines("PRIVMSG " + messageSourceParts[1] + ":" + answerString);
-    }
+    return MessageAnswer.sendLines(message.replace("PING", "PONG"));
+  }
 
-    private MessageAnswer ping(String message) {
-        return MessageAnswer.sendLines(message.replace("PING", "PONG"));
-    }
+  @Override
+  public MessageAnswer handleMessage(String message) {
 
-    @Override
-    public MessageAnswer handleMessage(String message) {
+    Optional<Function<String, MessageAnswer>> function = getFunctionMap().entrySet().stream()
+                                                                         .filter(e -> message.matches(e.getKey()))
+                                                                         .map(Map.Entry::getValue)
+                                                                         .findFirst();
 
-        Optional<Function<String, MessageAnswer>> function = getFunctionMap().entrySet().stream()
-                .filter(e -> message.matches(e.getKey()))
-                .map(Map.Entry::getValue)
-                .findFirst();
+    Optional<MessageAnswer> action = function.map(fun -> fun.apply(message));
 
-        Optional<MessageAnswer> action = function.map(fun -> fun.apply(message));
-
-        return action.orElseGet(MessageAnswer::ignoreAnswer);
-    }
+    return action.orElseGet(MessageAnswer::ignoreAnswer);
+  }
 }
