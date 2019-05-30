@@ -19,9 +19,13 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static de.scaramanga.lily.irc.connection.actions.ConnectionAction.ConnectionActionType.*;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 import static org.mockito.Mockito.*;
 
 class ConnectionTest {
@@ -33,6 +37,8 @@ class ConnectionTest {
   private static final String                  MESSAGE        = "message";
   private static final List<String>            STRING_LIST    = List.of("a", "b", "c");
   private static final String[]                STRING_LIST_LF = new String[]{ "a" + CRLF, "b" + CRLF, "c" + CRLF };
+  private static final String                  EXPECTED_REGEX = "test.*";
+  private static final String                  REGEX_TRIGGER  = "testAbc";
   private              MessageHandler          messageHandlerMock;
   private              RootMessageHandler      rootHandlerMock;
   private              Socket                  socketMock;
@@ -63,6 +69,8 @@ class ConnectionTest {
     doCallRealMethod().when(socketOutputStreamMock).write(any(byte[].class));
     doAnswer(this::writeToBuffer).when(socketOutputStreamMock).write(any(byte[].class), any(int.class), any(int.class));
     doAnswer(this::flushOutputStream).when(socketOutputStreamMock).flush();
+
+    when(messageHandlerMock.handleMessage(REGEX_TRIGGER)).thenReturn(MessageAnswer.ignoreAnswer());
 
     connection = new Connection(HOST, PORT, messageHandlerMock, rootHandlerMock, (a, b) -> socketMock, actionQueueMock);
   }
@@ -153,6 +161,39 @@ class ConnectionTest {
     connection.call(false, false);
 
     assertThat(output).containsExactly("PART #" + CHANNEL + CRLF, "QUIT" + CRLF);
+  }
+
+  @Test
+  void awaitsMessageAndCallsCallback() {
+
+    AtomicBoolean callbackCalled = new AtomicBoolean(false);
+
+    connection
+        .awaitMessage(EXPECTED_REGEX)
+        .thenCall(message -> callbackCalled.set(message.equals(REGEX_TRIGGER)));
+
+    inputStreamMock.provideLine(REGEX_TRIGGER + CRLF);
+    connection.call(false, false);
+
+    await("Callback not called").atMost(5, TimeUnit.SECONDS).untilTrue(callbackCalled);
+  }
+
+  @Test
+  void deletesCallbackAfterTriggering() {
+
+    AtomicInteger count = new AtomicInteger(0);
+
+    connection
+        .awaitMessage(EXPECTED_REGEX)
+        .thenCall(message -> count.incrementAndGet());
+
+    inputStreamMock.provideLine(REGEX_TRIGGER + CRLF);
+    connection.call(false, false);
+
+    inputStreamMock.provideLine(REGEX_TRIGGER + CRLF);
+    connection.call(false, false);
+
+    assertThat(count.get()).isEqualTo(1);
   }
 
   private Answer<Void> writeToBuffer(InvocationOnMock invocation) {

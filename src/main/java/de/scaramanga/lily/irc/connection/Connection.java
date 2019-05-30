@@ -10,6 +10,8 @@ import de.scaramanga.lily.irc.exception.IrcConnectionException;
 import de.scaramanga.lily.irc.interfaces.MessageHandler;
 import de.scaramanga.lily.irc.interfaces.RootMessageHandler;
 import de.scaramanga.lily.irc.interfaces.SocketFactory;
+import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.BufferedReader;
@@ -18,6 +20,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.net.Socket;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
@@ -38,8 +41,9 @@ class Connection implements Callable<Void> {
   private final MessageHandler          messageHandler;
   private final RootMessageHandler      rootHandler;
   private final Queue<ConnectionAction> actionQueue;
-  private final List<String>            channels    = new ArrayList<>();
-  private final AtomicBoolean           interrupted = new AtomicBoolean(false);
+  private final List<String>            channels      = new ArrayList<>();
+  private final AtomicBoolean           interrupted   = new AtomicBoolean(false);
+  private final List<AwaitMessage>      awaitMessages = new ArrayList<>();
 
   private BufferedReader reader;
   private Writer         writer;
@@ -112,6 +116,7 @@ class Connection implements Callable<Void> {
       String message = reader.readLine();
       LOGGER.info(message);
       handleMessage(message);
+      handleAwait(message);
     }
   }
 
@@ -181,6 +186,18 @@ class Connection implements Callable<Void> {
     }
   }
 
+  private void handleAwait(String message) {
+
+    AwaitMessage await = awaitMessages
+        .stream()
+        .filter(a -> message.matches(a.getRegex()))
+        .findFirst()
+        .orElseGet(AwaitMessage::empty);
+
+    await.messageCallback.accept(message);
+    awaitMessages.remove(await);
+  }
+
   private void performAction(ConnectionAction action) {
 
     Map<ConnectionActionType, Consumer<ConnectionActionData>> actionMap = new EnumMap<>(ConnectionActionType.class);
@@ -203,6 +220,58 @@ class Connection implements Callable<Void> {
 
     while ((action = actionQueue.poll()) != null) {
       performAction(action);
+    }
+  }
+
+  AwaitMessageBuilder awaitMessage(String regex) {
+
+    return AwaitMessageBuilder.withRegex(regex, this::addAwait);
+  }
+
+  private void addAwait(AwaitMessage awaitMessage) {
+
+    awaitMessages.add(awaitMessage);
+  }
+
+  @Getter(AccessLevel.PRIVATE)
+  static class AwaitMessageBuilder {
+
+    private final String                 regex;
+    private final Consumer<AwaitMessage> addMessageConsumer;
+
+    private AwaitMessageBuilder(String regex,
+                                Consumer<AwaitMessage> addMessageConsumer) {
+
+      this.regex              = regex;
+      this.addMessageConsumer = addMessageConsumer;
+    }
+
+    static AwaitMessageBuilder withRegex(String regex, Consumer<AwaitMessage> addMessageConsumer) {
+
+      return new AwaitMessageBuilder(regex, addMessageConsumer);
+    }
+
+    public void thenCall(Consumer<String> messageCallback) {
+
+      addMessageConsumer.accept(new AwaitMessage(regex, messageCallback));
+    }
+  }
+
+  @Getter(AccessLevel.PRIVATE)
+  private static class AwaitMessage {
+
+    private final String           regex;
+    private final Consumer<String> messageCallback;
+
+    private AwaitMessage(String regex, Consumer<String> messageCallback) {
+
+      this.regex           = regex;
+      this.messageCallback = messageCallback;
+    }
+
+    private static AwaitMessage empty() {
+
+      return new AwaitMessage("", s -> {});
     }
   }
 }
