@@ -7,6 +7,7 @@ import de.scaramanga.lily.irc.connection.actions.LeaveActionData;
 import de.scaramanga.lily.irc.interfaces.MessageHandler;
 import de.scaramanga.lily.irc.interfaces.RootMessageHandler;
 import de.scaramanga.lily.testutils.InputStreamMock;
+import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.invocation.InvocationOnMock;
@@ -16,6 +17,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
@@ -46,6 +49,7 @@ class ConnectionTest {
   private              List<String>            outputBuffer;
   private              List<String>            output;
   private              Queue<ConnectionAction> actionQueueMock;
+  private              LocalDateTime           currentTime;
   private              Connection              connection;
 
   @BeforeEach
@@ -72,7 +76,8 @@ class ConnectionTest {
 
     when(messageHandlerMock.handleMessage(REGEX_TRIGGER)).thenReturn(MessageAnswer.ignoreAnswer());
 
-    connection = new Connection(HOST, PORT, messageHandlerMock, rootHandlerMock, (a, b) -> socketMock, actionQueueMock);
+    connection = new Connection(HOST, PORT, messageHandlerMock, rootHandlerMock, (a, b) -> socketMock, actionQueueMock,
+                                () -> currentTime);
   }
 
   @Test
@@ -194,6 +199,35 @@ class ConnectionTest {
     connection.call(false, false);
 
     assertThat(count.get()).isEqualTo(1);
+  }
+
+  @Test
+  void callsFallbackOnTimeout() {
+
+    AtomicBoolean fallbackCalled = new AtomicBoolean(false);
+
+    LocalDateTime baseTime = LocalDateTime.of(2019, 5, 30, 16, 29, 0);
+    currentTime = baseTime;
+
+    connection
+        .awaitMessage(EXPECTED_REGEX)
+        .atMost(Duration.ofMinutes(1L))
+        .onTimeoutCall(() -> fallbackCalled.set(true))
+        .thenDoNothing();
+
+    SoftAssertions soft = new SoftAssertions();
+
+    currentTime = baseTime.plus(Duration.ofSeconds(59L));
+    connection.call(false, false);
+
+    soft.assertThat(fallbackCalled.get()).isFalse();
+
+    currentTime = baseTime.plus(Duration.ofMinutes(60L));
+    connection.call(false, false);
+
+    soft.assertThat(fallbackCalled.get()).isTrue();
+
+    soft.assertAll();
   }
 
   private Answer<Void> writeToBuffer(InvocationOnMock invocation) {

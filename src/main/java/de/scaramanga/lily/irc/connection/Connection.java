@@ -13,6 +13,7 @@ import de.scaramanga.lily.irc.interfaces.SocketFactory;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.lang.NonNull;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -20,7 +21,8 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.net.Socket;
-import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.temporal.TemporalAmount;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
@@ -30,6 +32,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import static de.scaramanga.lily.irc.connection.MessageAnswer.AnswerType.SEND_LINES;
 import static de.scaramanga.lily.irc.connection.actions.ConnectionAction.ConnectionActionType.*;
@@ -44,6 +47,7 @@ class Connection implements Callable<Void> {
   private final List<String>            channels      = new ArrayList<>();
   private final AtomicBoolean           interrupted   = new AtomicBoolean(false);
   private final List<AwaitMessage>      awaitMessages = new ArrayList<>();
+  private final Supplier<LocalDateTime> currentTimeSupplier;
 
   private BufferedReader reader;
   private Writer         writer;
@@ -54,10 +58,18 @@ class Connection implements Callable<Void> {
   Connection(String host, Integer port, MessageHandler messageHandler, RootMessageHandler rootHandler,
              SocketFactory socketFactory, Queue<ConnectionAction> actionQueue) {
 
-    this.messageHandler = messageHandler;
-    this.rootHandler    = rootHandler;
-    this.actionQueue    = actionQueue;
-    this.socketSupplier = () -> socketFactory.getSocket(host, port);
+    this(host, port, messageHandler, rootHandler, socketFactory, actionQueue, LocalDateTime::now);
+  }
+
+  Connection(String host, Integer port, MessageHandler messageHandler, RootMessageHandler rootHandler,
+             SocketFactory socketFactory, Queue<ConnectionAction> actionQueue,
+             Supplier<LocalDateTime> currentTimeSupplier) {
+
+    this.messageHandler      = messageHandler;
+    this.rootHandler         = rootHandler;
+    this.actionQueue         = actionQueue;
+    this.currentTimeSupplier = currentTimeSupplier;
+    this.socketSupplier      = () -> socketFactory.getSocket(host, port);
   }
 
   @Override
@@ -117,6 +129,8 @@ class Connection implements Callable<Void> {
       LOGGER.info(message);
       handleMessage(message);
       handleAwait(message);
+    } else {
+      handleAwait("");
     }
   }
 
@@ -186,7 +200,7 @@ class Connection implements Callable<Void> {
     }
   }
 
-  private void handleAwait(String message) {
+  private void handleAwait(@NonNull String message) {
 
     AwaitMessage await = awaitMessages
         .stream()
@@ -196,6 +210,21 @@ class Connection implements Callable<Void> {
 
     await.messageCallback.accept(message);
     awaitMessages.remove(await);
+
+    LocalDateTime now = currentTimeSupplier.get();
+
+    List<AwaitMessage> timeouts = awaitMessages
+        .stream()
+        .filter(a -> a.getTimeout() != null)
+        .filter(a -> a.getTimeout().isBefore(now))
+        .collect(Collectors.toList());
+
+    timeouts
+        .stream()
+        .map(AwaitMessage::getFallback)
+        .forEach(Runnable::run);
+
+    awaitMessages.removeAll(timeouts);
   }
 
   private void performAction(ConnectionAction action) {
@@ -225,7 +254,7 @@ class Connection implements Callable<Void> {
 
   AwaitMessageBuilder awaitMessage(String regex) {
 
-    return AwaitMessageBuilder.withRegex(regex, this::addAwait);
+    return AwaitMessageBuilder.withRegex(regex, this::addAwait, currentTimeSupplier);
   }
 
   private void addAwait(AwaitMessage awaitMessage) {
@@ -236,24 +265,52 @@ class Connection implements Callable<Void> {
   @Getter(AccessLevel.PRIVATE)
   static class AwaitMessageBuilder {
 
-    private final String                 regex;
-    private final Consumer<AwaitMessage> addMessageConsumer;
+    private final String                  regex;
+    private final Consumer<AwaitMessage>  addMessageConsumer;
+    private final Supplier<LocalDateTime> currentTimeSupplier;
+    private       Runnable                fallback = () -> {};
+    private       TemporalAmount          timeout  = null;
 
     private AwaitMessageBuilder(String regex,
-                                Consumer<AwaitMessage> addMessageConsumer) {
+                                Consumer<AwaitMessage> addMessageConsumer,
+                                Supplier<LocalDateTime> currentTimeSupplier) {
 
-      this.regex              = regex;
-      this.addMessageConsumer = addMessageConsumer;
+      this.regex               = regex;
+      this.addMessageConsumer  = addMessageConsumer;
+      this.currentTimeSupplier = currentTimeSupplier;
     }
 
-    static AwaitMessageBuilder withRegex(String regex, Consumer<AwaitMessage> addMessageConsumer) {
+    static AwaitMessageBuilder withRegex(String regex, Consumer<AwaitMessage> addMessageConsumer,
+                                         Supplier<LocalDateTime> currentTimeSupplier) {
 
-      return new AwaitMessageBuilder(regex, addMessageConsumer);
+      return new AwaitMessageBuilder(regex, addMessageConsumer, currentTimeSupplier);
+    }
+
+    public AwaitMessageBuilder atMost(TemporalAmount amount) {
+
+      timeout = amount;
+      return this;
+    }
+
+    public AwaitMessageBuilder onTimeoutCall(Runnable fallback) {
+
+      this.fallback = fallback;
+      return this;
     }
 
     public void thenCall(Consumer<String> messageCallback) {
 
-      addMessageConsumer.accept(new AwaitMessage(regex, messageCallback));
+      addMessageConsumer.accept(new AwaitMessage(regex, messageCallback, fromNow(timeout), fallback));
+    }
+
+    public void thenDoNothing() {
+
+      addMessageConsumer.accept(new AwaitMessage(regex, message -> {}, fromNow(timeout), fallback));
+    }
+
+    private LocalDateTime fromNow(TemporalAmount amount) {
+
+      return amount != null ? currentTimeSupplier.get().plus(amount) : null;
     }
   }
 
@@ -261,17 +318,22 @@ class Connection implements Callable<Void> {
   private static class AwaitMessage {
 
     private final String           regex;
+    private final LocalDateTime    timeout;
+    private final Runnable         fallback;
     private final Consumer<String> messageCallback;
 
-    private AwaitMessage(String regex, Consumer<String> messageCallback) {
+    private AwaitMessage(String regex, Consumer<String> messageCallback, LocalDateTime timeout,
+                         Runnable fallback) {
 
       this.regex           = regex;
       this.messageCallback = messageCallback;
+      this.timeout         = timeout;
+      this.fallback        = fallback;
     }
 
     private static AwaitMessage empty() {
 
-      return new AwaitMessage("", s -> {});
+      return new AwaitMessage("", s -> {}, null, () -> {});
     }
   }
 }
