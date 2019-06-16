@@ -94,7 +94,7 @@ class Connection implements Callable<Void> {
 
     do {
 
-      emptyQueue();
+      actionQueue.forAllActions(this::performAction);
 
       try {
         receiveLine();
@@ -240,15 +240,6 @@ class Connection implements Callable<Void> {
     }
 
     actionMap.get(action.getType()).accept(action.getData());
-  }
-
-  private void emptyQueue() {
-
-    ConnectionAction action;
-
-    while ((action = actionQueue.nextAction()) != null) {
-      performAction(action);
-    }
   }
 
   AwaitMessageBuilder awaitMessage(String regex) {

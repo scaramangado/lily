@@ -8,6 +8,7 @@ import de.scaramanga.lily.irc.connection.actions.LeaveActionData;
 import de.scaramanga.lily.irc.interfaces.MessageHandler;
 import de.scaramanga.lily.irc.interfaces.RootMessageHandler;
 import de.scaramanga.lily.irc.interfaces.SocketFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.context.event.ContextRefreshedEvent;
@@ -21,6 +22,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import static de.scaramanga.lily.irc.connection.actions.ConnectionAction.ConnectionActionType.*;
 
 @Component
+@Slf4j
 public class ConnectionManager {
 
   private final IrcProperties         properties;
@@ -59,6 +61,8 @@ public class ConnectionManager {
     if (!properties.isEnabled() || connected.get()) {
       return;
     }
+
+    LOGGER.info("IRC enabled. Connecting...");
 
     executor.submit(connectionFactory.getConnection(properties.getHost(), properties.getPort(), messageHandler,
                                                     rootMessageHandler, socketFactory, actionQueue));
