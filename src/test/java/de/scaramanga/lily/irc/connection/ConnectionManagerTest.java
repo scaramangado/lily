@@ -16,8 +16,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.ArrayList;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 
 import static de.scaramanga.lily.irc.connection.actions.ConnectionAction.ConnectionActionType.*;
@@ -28,26 +26,26 @@ import static org.mockito.Mockito.*;
 @SpringBootTest(classes = IrcProperties.class)
 class ConnectionManagerTest {
 
-  private              ConnectionManager       manager;
-  private              MessageHandler          messageHandlerMock     = mock(MessageHandler.class);
-  private              RootMessageHandler      rootMessageHandlerMock = mock(RootMessageHandler.class);
-  private              SocketFactory           socketFactoryMock      = mock(SocketFactory.class);
-  private              Queue<ConnectionAction> actionQueue;
-  private              IrcProperties           properties;
-  private              Connection              connectionMock         = mock(Connection.class);
-  private static final String                  CHANNEL                = "channel";
-  private static final String                  MESSAGE                = "message";
+  private              ConnectionManager     manager;
+  private              MessageHandler        messageHandlerMock     = mock(MessageHandler.class);
+  private              RootMessageHandler    rootMessageHandlerMock = mock(RootMessageHandler.class);
+  private              SocketFactory         socketFactoryMock      = mock(SocketFactory.class);
+  private              ConnectionActionQueue actionQueue;
+  private              IrcProperties         properties;
+  private              Connection            connectionMock         = mock(Connection.class);
+  private static final String                CHANNEL                = "channel";
+  private static final String                MESSAGE                = "message";
 
   @BeforeEach
   void setup() {
 
-    actionQueue = new ConcurrentLinkedQueue<>();
+    actionQueue = new ConnectionActionQueue();
     properties  = new IrcProperties();
     properties.setEnabled(true);
     properties.setChannels(new ArrayList<>());
 
     manager = new ConnectionManager(properties, messageHandlerMock, rootMessageHandlerMock, socketFactoryMock,
-                                    () -> actionQueue, (a, b, c, d, e, f) -> connectionMock);
+                                    actionQueue, (a, b, c, d, e, f) -> connectionMock);
   }
 
   @Test
@@ -90,15 +88,15 @@ class ConnectionManagerTest {
 
     manager.connectToChannel(CHANNEL);
 
-    await().atMost(1, TimeUnit.SECONDS).until(() -> actionQueue.peek() != null);
+    await().atMost(1, TimeUnit.SECONDS).until(() -> actionQueue.showNextAction() != null);
 
-    ConnectionAction join = actionQueue.poll();
+    ConnectionAction join = actionQueue.nextAction();
 
     SoftAssertions soft = new SoftAssertions();
 
     soft.assertThat(join.getType()).isEqualTo(JOIN);
     soft.assertThat(((JoinActionData) join.getData()).getChannelName()).isEqualTo(CHANNEL);
-    soft.assertThat(actionQueue.poll()).isNull();
+    soft.assertThat(actionQueue.nextAction()).isNull();
 
     soft.assertAll();
   }
@@ -108,15 +106,15 @@ class ConnectionManagerTest {
 
     manager.leaveChannel(CHANNEL);
 
-    await().atMost(1, TimeUnit.SECONDS).until(() -> actionQueue.peek() != null);
+    await().atMost(1, TimeUnit.SECONDS).until(() -> actionQueue.showNextAction() != null);
 
-    ConnectionAction leave = actionQueue.poll();
+    ConnectionAction leave = actionQueue.nextAction();
 
     SoftAssertions soft = new SoftAssertions();
 
     soft.assertThat(leave.getType()).isEqualTo(LEAVE);
     soft.assertThat(((LeaveActionData) leave.getData()).getChannelName()).isEqualTo(CHANNEL);
-    soft.assertThat(actionQueue.poll()).isNull();
+    soft.assertThat(actionQueue.nextAction()).isNull();
 
     soft.assertAll();
   }
@@ -134,29 +132,29 @@ class ConnectionManagerTest {
 
     manager.broadcast(MESSAGE);
 
-    await().atMost(1, TimeUnit.SECONDS).until(() -> actionQueue.peek() != null);
+    await().atMost(1, TimeUnit.SECONDS).until(() -> actionQueue.showNextAction() != null);
 
-    ConnectionAction leave = actionQueue.poll();
+    ConnectionAction leave = actionQueue.nextAction();
 
     SoftAssertions soft = new SoftAssertions();
 
     soft.assertThat(leave.getType()).isEqualTo(BROADCAST);
     soft.assertThat(((BroadcastActionData) leave.getData()).getMessage()).isEqualTo(MESSAGE);
-    soft.assertThat(actionQueue.poll()).isNull();
+    soft.assertThat(actionQueue.nextAction()).isNull();
 
     soft.assertAll();
   }
 
   private void assertDisconnectActionSent() {
 
-    await().atMost(1, TimeUnit.SECONDS).until(() -> actionQueue.peek() != null);
+    await().atMost(1, TimeUnit.SECONDS).until(() -> actionQueue.showNextAction() != null);
 
-    ConnectionAction disconnect = actionQueue.poll();
+    ConnectionAction disconnect = actionQueue.nextAction();
 
     SoftAssertions soft = new SoftAssertions();
 
     soft.assertThat(disconnect.getType()).isEqualTo(DISCONNECT);
-    soft.assertThat(actionQueue.poll()).isNull();
+    soft.assertThat(actionQueue.nextAction()).isNull();
 
     soft.assertAll();
   }

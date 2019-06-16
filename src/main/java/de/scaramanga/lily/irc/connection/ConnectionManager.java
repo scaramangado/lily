@@ -14,44 +14,42 @@ import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Supplier;
 
 import static de.scaramanga.lily.irc.connection.actions.ConnectionAction.ConnectionActionType.*;
 
 @Component
 public class ConnectionManager {
 
-  private final IrcProperties           properties;
-  private final MessageHandler          messageHandler;
-  private final RootMessageHandler      rootMessageHandler;
-  private final SocketFactory           socketFactory;
-  private final ExecutorService         executor  = Executors.newCachedThreadPool();
-  private final AtomicBoolean           connected = new AtomicBoolean(false);
-  private final Queue<ConnectionAction> actionQueue;
-  private final ConnectionFactory       connectionFactory;
+  private final IrcProperties         properties;
+  private final MessageHandler        messageHandler;
+  private final RootMessageHandler    rootMessageHandler;
+  private final SocketFactory         socketFactory;
+  private final ExecutorService       executor  = Executors.newCachedThreadPool();
+  private final AtomicBoolean         connected = new AtomicBoolean(false);
+  private final ConnectionActionQueue actionQueue;
+  private final ConnectionFactory     connectionFactory;
 
   ConnectionManager(IrcProperties properties, MessageHandler messageHandler,
                     RootMessageHandler rootMessageHandler, SocketFactory socketFactory,
-                    Supplier<Queue<ConnectionAction>> actionQueueSupplier, ConnectionFactory connectionFactory) {
+                    ConnectionActionQueue actionQueue, ConnectionFactory connectionFactory) {
 
     this.properties         = properties;
     this.messageHandler     = messageHandler;
     this.rootMessageHandler = rootMessageHandler;
     this.socketFactory      = socketFactory;
-    this.actionQueue        = actionQueueSupplier.get();
+    this.actionQueue        = actionQueue;
     this.connectionFactory  = connectionFactory;
   }
 
   @Autowired
   public ConnectionManager(IrcProperties properties, MessageHandler messageHandler,
-                           RootMessageHandler rootMessageHandler, SocketFactory socketFactory) {
+                           RootMessageHandler rootMessageHandler, SocketFactory socketFactory,
+                           ConnectionActionQueue actionQueue) {
 
-    this(properties, messageHandler, rootMessageHandler, socketFactory, ConcurrentLinkedQueue::new,
+    this(properties, messageHandler, rootMessageHandler, socketFactory, actionQueue,
          ConnectionFactory.standardFactory());
   }
 
@@ -98,6 +96,6 @@ public class ConnectionManager {
 
   private void sendAction(ConnectionAction action) {
 
-    executor.submit(() -> actionQueue.add(action));
+    executor.submit(() -> actionQueue.addAction(action));
   }
 }

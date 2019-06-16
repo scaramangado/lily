@@ -17,8 +17,10 @@ dependencies {
 
   lombok("1.18.4")
 
-  testImplementation("org.junit.jupiter:junit-jupiter-api:5.4.0")
-  testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.4.0")
+  val jUnitVersion = "5.4.2"
+  testImplementation("org.junit.jupiter:junit-jupiter-api:$jUnitVersion")
+  testImplementation("org.junit.jupiter:junit-jupiter-params:$jUnitVersion")
+  testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$jUnitVersion")
 
   testImplementation("org.springframework.boot:spring-boot-starter-test:2.1.2.RELEASE") {
     exclude(module = "junit")

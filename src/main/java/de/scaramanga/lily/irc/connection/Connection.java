@@ -27,7 +27,6 @@ import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Queue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
@@ -43,7 +42,7 @@ class Connection implements Callable<Void> {
   private final Supplier<Socket>        socketSupplier;
   private final MessageHandler          messageHandler;
   private final RootMessageHandler      rootHandler;
-  private final Queue<ConnectionAction> actionQueue;
+  private final ConnectionActionQueue   actionQueue;
   private final List<String>            channels      = new ArrayList<>();
   private final AtomicBoolean           interrupted   = new AtomicBoolean(false);
   private final List<AwaitMessage>      awaitMessages = new ArrayList<>();
@@ -56,13 +55,13 @@ class Connection implements Callable<Void> {
   private static final String WRONG_DATA_MESSAGE = "Action data of wrong type.";
 
   Connection(String host, Integer port, MessageHandler messageHandler, RootMessageHandler rootHandler,
-             SocketFactory socketFactory, Queue<ConnectionAction> actionQueue) {
+             SocketFactory socketFactory, ConnectionActionQueue actionQueue) {
 
     this(host, port, messageHandler, rootHandler, socketFactory, actionQueue, LocalDateTime::now);
   }
 
   Connection(String host, Integer port, MessageHandler messageHandler, RootMessageHandler rootHandler,
-             SocketFactory socketFactory, Queue<ConnectionAction> actionQueue,
+             SocketFactory socketFactory, ConnectionActionQueue actionQueue,
              Supplier<LocalDateTime> currentTimeSupplier) {
 
     this.messageHandler      = messageHandler;
@@ -247,7 +246,7 @@ class Connection implements Callable<Void> {
 
     ConnectionAction action;
 
-    while ((action = actionQueue.poll()) != null) {
+    while ((action = actionQueue.nextAction()) != null) {
       performAction(action);
     }
   }

@@ -21,7 +21,6 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Queue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -33,30 +32,29 @@ import static org.mockito.Mockito.*;
 
 class ConnectionTest {
 
-  private static final String                  HOST           = "host";
-  private static final Integer                 PORT           = 1;
-  private static final String                  CRLF           = "\n\r";
-  private static final String                  CHANNEL        = "channel";
-  private static final String                  MESSAGE        = "message";
-  private static final List<String>            STRING_LIST    = List.of("a", "b", "c");
-  private static final String[]                STRING_LIST_LF = new String[]{ "a" + CRLF, "b" + CRLF, "c" + CRLF };
-  private static final String                  EXPECTED_REGEX = "test.*";
-  private static final String                  REGEX_TRIGGER  = "testAbc";
-  private              MessageHandler          messageHandlerMock;
-  private              RootMessageHandler      rootHandlerMock;
-  private              Socket                  socketMock;
-  private              InputStreamMock         inputStreamMock;
-  private              List<String>            outputBuffer;
-  private              List<String>            output;
-  private              Queue<ConnectionAction> actionQueueMock;
-  private              LocalDateTime           currentTime;
-  private              Connection              connection;
+  private static final String                HOST           = "host";
+  private static final Integer               PORT           = 1;
+  private static final String                CRLF           = "\n\r";
+  private static final String                CHANNEL        = "channel";
+  private static final String                MESSAGE        = "message";
+  private static final List<String>          STRING_LIST    = List.of("a", "b", "c");
+  private static final String[]              STRING_LIST_LF = new String[]{ "a" + CRLF, "b" + CRLF, "c" + CRLF };
+  private static final String                EXPECTED_REGEX = "test.*";
+  private static final String                REGEX_TRIGGER  = "testAbc";
+  private              MessageHandler        messageHandlerMock;
+  private              RootMessageHandler    rootHandlerMock;
+  private              Socket                socketMock;
+  private              InputStreamMock       inputStreamMock;
+  private              List<String>          outputBuffer;
+  private              List<String>          output;
+  private              ConnectionActionQueue actionQueueMock;
+  private              LocalDateTime         currentTime;
+  private              Connection            connection;
 
   @BeforeEach
   void setup() throws IOException {
 
-    //noinspection unchecked
-    actionQueueMock    = (Queue<ConnectionAction>) mock(Queue.class);
+    actionQueueMock    = mock(ConnectionActionQueue.class);
     messageHandlerMock = mock(MessageHandler.class);
     rootHandlerMock    = mock(RootMessageHandler.class);
     inputStreamMock    = InputStreamMock.getInputStreamMock();
@@ -94,7 +92,7 @@ class ConnectionTest {
   void connectsToTheChannel() {
 
     ConnectionAction join = new ConnectionAction(JOIN, JoinActionData.withChannelName(CHANNEL));
-    when(actionQueueMock.poll()).thenReturn(join).thenReturn(null);
+    when(actionQueueMock.nextAction()).thenReturn(join).thenReturn(null);
 
     connection.call(false, false);
 
@@ -105,7 +103,7 @@ class ConnectionTest {
   void leavesChannel() {
 
     ConnectionAction leave = new ConnectionAction(LEAVE, LeaveActionData.withChannelName(CHANNEL));
-    when(actionQueueMock.poll()).thenReturn(leave).thenReturn(null);
+    when(actionQueueMock.nextAction()).thenReturn(leave).thenReturn(null);
 
     connection.call(false, false);
 
@@ -139,7 +137,7 @@ class ConnectionTest {
   void broadcasts() {
 
     ConnectionAction broadcast = new ConnectionAction(BROADCAST, BroadcastActionData.withMessage(MESSAGE));
-    when(actionQueueMock.poll()).thenReturn(broadcast).thenReturn(null);
+    when(actionQueueMock.nextAction()).thenReturn(broadcast).thenReturn(null);
 
     connection.addChannelToList("a");
     connection.addChannelToList("b");
@@ -156,13 +154,13 @@ class ConnectionTest {
   void disconnectsFromChannelsAndServer() {
 
     ConnectionAction join = new ConnectionAction(JOIN, JoinActionData.withChannelName(CHANNEL));
-    when(actionQueueMock.poll()).thenReturn(join).thenReturn(null);
+    when(actionQueueMock.nextAction()).thenReturn(join).thenReturn(null);
     connection.call(false, false);
 
     output.clear();
 
     ConnectionAction disconnect = new ConnectionAction(DISCONNECT, null);
-    when(actionQueueMock.poll()).thenReturn(disconnect).thenReturn(null);
+    when(actionQueueMock.nextAction()).thenReturn(disconnect).thenReturn(null);
     connection.call(false, false);
 
     assertThat(output).containsExactly("PART #" + CHANNEL + CRLF, "QUIT" + CRLF);
