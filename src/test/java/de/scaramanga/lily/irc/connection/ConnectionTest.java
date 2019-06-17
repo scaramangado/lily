@@ -92,7 +92,9 @@ class ConnectionTest {
   void connectsToTheChannel() {
 
     ConnectionAction join = new ConnectionAction(JOIN, JoinActionData.withChannelName(CHANNEL));
-    when(actionQueueMock.nextAction()).thenReturn(join).thenReturn(null);
+    when(actionQueueMock.nextAction()).thenReturn(join).thenThrow(IndexOutOfBoundsException.class);
+    when(actionQueueMock.hasAction()).thenReturn(true).thenReturn(false);
+    doCallRealMethod().when(actionQueueMock).forAllActions(any());
 
     connection.call(false, false);
 
@@ -103,7 +105,9 @@ class ConnectionTest {
   void leavesChannel() {
 
     ConnectionAction leave = new ConnectionAction(LEAVE, LeaveActionData.withChannelName(CHANNEL));
-    when(actionQueueMock.nextAction()).thenReturn(leave).thenReturn(null);
+    when(actionQueueMock.nextAction()).thenReturn(leave).thenThrow(IndexOutOfBoundsException.class);
+    when(actionQueueMock.hasAction()).thenReturn(true).thenReturn(false);
+    doCallRealMethod().when(actionQueueMock).forAllActions(any());
 
     connection.call(false, false);
 
@@ -137,7 +141,9 @@ class ConnectionTest {
   void broadcasts() {
 
     ConnectionAction broadcast = new ConnectionAction(BROADCAST, BroadcastActionData.withMessage(MESSAGE));
-    when(actionQueueMock.nextAction()).thenReturn(broadcast).thenReturn(null);
+    when(actionQueueMock.nextAction()).thenReturn(broadcast).thenThrow(IndexOutOfBoundsException.class);
+    when(actionQueueMock.hasAction()).thenReturn(true).thenReturn(false);
+    doCallRealMethod().when(actionQueueMock).forAllActions(any());
 
     connection.addChannelToList("a");
     connection.addChannelToList("b");
@@ -154,13 +160,19 @@ class ConnectionTest {
   void disconnectsFromChannelsAndServer() {
 
     ConnectionAction join = new ConnectionAction(JOIN, JoinActionData.withChannelName(CHANNEL));
-    when(actionQueueMock.nextAction()).thenReturn(join).thenReturn(null);
+    when(actionQueueMock.nextAction()).thenReturn(join).thenThrow(IndexOutOfBoundsException.class);
+    when(actionQueueMock.hasAction()).thenReturn(true).thenReturn(false);
+    doCallRealMethod().when(actionQueueMock).forAllActions(any());
+
     connection.call(false, false);
 
     output.clear();
+    reset(actionQueueMock);
 
     ConnectionAction disconnect = new ConnectionAction(DISCONNECT, null);
-    when(actionQueueMock.nextAction()).thenReturn(disconnect).thenReturn(null);
+    when(actionQueueMock.nextAction()).thenReturn(disconnect).thenThrow(IndexOutOfBoundsException.class);
+    when(actionQueueMock.hasAction()).thenReturn(true).thenReturn(false);
+    doCallRealMethod().when(actionQueueMock).forAllActions(any());
     connection.call(false, false);
 
     assertThat(output).containsExactly("PART #" + CHANNEL + CRLF, "QUIT" + CRLF);

@@ -96,7 +96,7 @@ class ConnectionManagerTest {
 
     soft.assertThat(join.getType()).isEqualTo(JOIN);
     soft.assertThat(((JoinActionData) join.getData()).getChannelName()).isEqualTo(CHANNEL);
-    soft.assertThat(actionQueue.nextAction()).isNull();
+    soft.assertThatThrownBy(() -> actionQueue.nextAction()).isExactlyInstanceOf(IndexOutOfBoundsException.class);
 
     soft.assertAll();
   }
@@ -114,7 +114,7 @@ class ConnectionManagerTest {
 
     soft.assertThat(leave.getType()).isEqualTo(LEAVE);
     soft.assertThat(((LeaveActionData) leave.getData()).getChannelName()).isEqualTo(CHANNEL);
-    soft.assertThat(actionQueue.nextAction()).isNull();
+    soft.assertThatThrownBy(() -> actionQueue.nextAction()).isExactlyInstanceOf(IndexOutOfBoundsException.class);
 
     soft.assertAll();
   }
@@ -140,7 +140,7 @@ class ConnectionManagerTest {
 
     soft.assertThat(leave.getType()).isEqualTo(BROADCAST);
     soft.assertThat(((BroadcastActionData) leave.getData()).getMessage()).isEqualTo(MESSAGE);
-    soft.assertThat(actionQueue.nextAction()).isNull();
+    soft.assertThatThrownBy(() -> actionQueue.nextAction()).isExactlyInstanceOf(IndexOutOfBoundsException.class);;
 
     soft.assertAll();
   }
@@ -154,7 +154,7 @@ class ConnectionManagerTest {
     SoftAssertions soft = new SoftAssertions();
 
     soft.assertThat(disconnect.getType()).isEqualTo(DISCONNECT);
-    soft.assertThat(actionQueue.nextAction()).isNull();
+    soft.assertThatThrownBy(() -> actionQueue.nextAction()).isExactlyInstanceOf(IndexOutOfBoundsException.class);
 
     soft.assertAll();
   }
