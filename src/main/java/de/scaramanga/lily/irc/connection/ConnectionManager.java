@@ -9,7 +9,6 @@ import de.scaramanga.lily.irc.interfaces.MessageHandler;
 import de.scaramanga.lily.irc.interfaces.RootMessageHandler;
 import de.scaramanga.lily.irc.interfaces.SocketFactory;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
@@ -34,9 +33,9 @@ public class ConnectionManager {
   private final ConnectionActionQueue actionQueue;
   private final ConnectionFactory     connectionFactory;
 
-  ConnectionManager(IrcProperties properties, MessageHandler messageHandler,
-                    RootMessageHandler rootMessageHandler, SocketFactory socketFactory,
-                    ConnectionActionQueue actionQueue, ConnectionFactory connectionFactory) {
+  public ConnectionManager(IrcProperties properties, MessageHandler messageHandler,
+                           RootMessageHandler rootMessageHandler, SocketFactory socketFactory,
+                           ConnectionActionQueue actionQueue, ConnectionFactory connectionFactory) {
 
     this.properties         = properties;
     this.messageHandler     = messageHandler;
@@ -44,15 +43,6 @@ public class ConnectionManager {
     this.socketFactory      = socketFactory;
     this.actionQueue        = actionQueue;
     this.connectionFactory  = connectionFactory;
-  }
-
-  @Autowired
-  public ConnectionManager(IrcProperties properties, MessageHandler messageHandler,
-                           RootMessageHandler rootMessageHandler, SocketFactory socketFactory,
-                           ConnectionActionQueue actionQueue) {
-
-    this(properties, messageHandler, rootMessageHandler, socketFactory, actionQueue,
-         ConnectionFactory.standardFactory());
   }
 
   @EventListener
