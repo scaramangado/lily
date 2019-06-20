@@ -1,28 +1,27 @@
 package de.scaramanga.lily.irc.connection;
 
+import de.scaramanga.lily.irc.connection.ping.PingHandler;
 import de.scaramanga.lily.irc.interfaces.MessageHandler;
 import de.scaramanga.lily.irc.interfaces.RootMessageHandler;
 import de.scaramanga.lily.irc.interfaces.SocketFactory;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.Map;
 
 @Component
-@Scope
 public class SingletonConnectionFactory implements ConnectionFactory {
 
   private final Map<ConnectionInfo, Connection> connections = new HashMap<>();
   private final ConnectionFactory               internalFactory;
 
   @Autowired
-  public SingletonConnectionFactory() {
+  public SingletonConnectionFactory(PingHandler pingHandler) {
 
-    this(ConnectionFactory.standardFactory());
+    this(ConnectionFactory.pingHandlerFactory(pingHandler));
   }
 
   SingletonConnectionFactory(ConnectionFactory internalFactory) {

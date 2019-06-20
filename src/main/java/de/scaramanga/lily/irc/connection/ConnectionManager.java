@@ -5,6 +5,7 @@ import de.scaramanga.lily.irc.connection.actions.BroadcastActionData;
 import de.scaramanga.lily.irc.connection.actions.ConnectionAction;
 import de.scaramanga.lily.irc.connection.actions.JoinActionData;
 import de.scaramanga.lily.irc.connection.actions.LeaveActionData;
+import de.scaramanga.lily.irc.connection.ping.PingHandler;
 import de.scaramanga.lily.irc.interfaces.MessageHandler;
 import de.scaramanga.lily.irc.interfaces.RootMessageHandler;
 import de.scaramanga.lily.irc.interfaces.SocketFactory;

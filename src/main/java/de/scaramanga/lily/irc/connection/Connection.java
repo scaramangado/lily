@@ -1,17 +1,19 @@
 package de.scaramanga.lily.irc.connection;
 
+import de.scaramanga.lily.irc.await.AwaitMessage;
+import de.scaramanga.lily.irc.await.AwaitMessageBuilder;
 import de.scaramanga.lily.irc.connection.actions.BroadcastActionData;
 import de.scaramanga.lily.irc.connection.actions.ConnectionAction;
 import de.scaramanga.lily.irc.connection.actions.ConnectionAction.ConnectionActionType;
 import de.scaramanga.lily.irc.connection.actions.ConnectionActionData;
 import de.scaramanga.lily.irc.connection.actions.JoinActionData;
 import de.scaramanga.lily.irc.connection.actions.LeaveActionData;
+import de.scaramanga.lily.irc.connection.ping.PingHandler;
+import de.scaramanga.lily.irc.connection.ping.Reconnectable;
 import de.scaramanga.lily.irc.exception.IrcConnectionException;
 import de.scaramanga.lily.irc.interfaces.MessageHandler;
 import de.scaramanga.lily.irc.interfaces.RootMessageHandler;
 import de.scaramanga.lily.irc.interfaces.SocketFactory;
-import lombok.AccessLevel;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
 
@@ -22,22 +24,23 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.net.Socket;
 import java.time.LocalDateTime;
-import java.time.temporal.TemporalAmount;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
-import static de.scaramanga.lily.irc.connection.MessageAnswer.AnswerType.SEND_LINES;
+import static de.scaramanga.lily.irc.connection.MessageAnswer.AnswerType.*;
 import static de.scaramanga.lily.irc.connection.actions.ConnectionAction.ConnectionActionType.*;
 
 @Slf4j
-class Connection implements Callable<Void> {
+class Connection implements Callable<Void>, Reconnectable {
 
   private final Supplier<Socket>        socketSupplier;
   private final MessageHandler          messageHandler;
@@ -47,6 +50,7 @@ class Connection implements Callable<Void> {
   private final AtomicBoolean           interrupted   = new AtomicBoolean(false);
   private final List<AwaitMessage>      awaitMessages = new ArrayList<>();
   private final Supplier<LocalDateTime> currentTimeSupplier;
+  private final PingHandler             pingHandler;
 
   private BufferedReader reader;
   private Writer         writer;
@@ -55,19 +59,22 @@ class Connection implements Callable<Void> {
   private static final String WRONG_DATA_MESSAGE = "Action data of wrong type.";
 
   Connection(String host, Integer port, MessageHandler messageHandler, RootMessageHandler rootHandler,
-             SocketFactory socketFactory, ConnectionActionQueue actionQueue) {
+             SocketFactory socketFactory, ConnectionActionQueue actionQueue,
+             PingHandler pingHandler) {
 
-    this(host, port, messageHandler, rootHandler, socketFactory, actionQueue, LocalDateTime::now);
+    this(host, port, messageHandler, rootHandler, socketFactory, actionQueue, LocalDateTime::now, pingHandler);
   }
 
   Connection(String host, Integer port, MessageHandler messageHandler, RootMessageHandler rootHandler,
              SocketFactory socketFactory, ConnectionActionQueue actionQueue,
-             Supplier<LocalDateTime> currentTimeSupplier) {
+             Supplier<LocalDateTime> currentTimeSupplier,
+             PingHandler pingHandler) {
 
     this.messageHandler      = messageHandler;
     this.rootHandler         = rootHandler;
     this.actionQueue         = actionQueue;
     this.currentTimeSupplier = currentTimeSupplier;
+    this.pingHandler         = pingHandler;
     this.socketSupplier      = () -> socketFactory.getSocket(host, port);
   }
 
@@ -126,9 +133,11 @@ class Connection implements Callable<Void> {
     if (reader.ready()) {
       String message = reader.readLine();
       LOGGER.info(message);
+      pingHandler.checkedForMessage(this, true);
       handleMessage(message);
       handleAwait(message);
     } else {
+      pingHandler.checkedForMessage(this, false);
       handleAwait("");
     }
   }
@@ -207,7 +216,7 @@ class Connection implements Callable<Void> {
         .findFirst()
         .orElseGet(AwaitMessage::empty);
 
-    await.messageCallback.accept(message);
+    await.getMessageCallback().accept(message);
     awaitMessages.remove(await);
 
     LocalDateTime now = currentTimeSupplier.get();
@@ -242,7 +251,8 @@ class Connection implements Callable<Void> {
     actionMap.get(action.getType()).accept(action.getData());
   }
 
-  AwaitMessageBuilder awaitMessage(String regex) {
+  @Override
+  public AwaitMessageBuilder awaitMessage(String regex) {
 
     return AwaitMessageBuilder.withRegex(regex, this::addAwait, currentTimeSupplier);
   }
@@ -252,78 +262,48 @@ class Connection implements Callable<Void> {
     awaitMessages.add(awaitMessage);
   }
 
-  @Getter(AccessLevel.PRIVATE)
-  static class AwaitMessageBuilder {
+  boolean trySingleReconnect() {
 
-    private final String                  regex;
-    private final Consumer<AwaitMessage>  addMessageConsumer;
-    private final Supplier<LocalDateTime> currentTimeSupplier;
-    private       Runnable                fallback = () -> {};
-    private       TemporalAmount          timeout  = null;
-
-    private AwaitMessageBuilder(String regex,
-                                Consumer<AwaitMessage> addMessageConsumer,
-                                Supplier<LocalDateTime> currentTimeSupplier) {
-
-      this.regex               = regex;
-      this.addMessageConsumer  = addMessageConsumer;
-      this.currentTimeSupplier = currentTimeSupplier;
-    }
-
-    static AwaitMessageBuilder withRegex(String regex, Consumer<AwaitMessage> addMessageConsumer,
-                                         Supplier<LocalDateTime> currentTimeSupplier) {
-
-      return new AwaitMessageBuilder(regex, addMessageConsumer, currentTimeSupplier);
-    }
-
-    public AwaitMessageBuilder atMost(TemporalAmount amount) {
-
-      timeout = amount;
-      return this;
-    }
-
-    public AwaitMessageBuilder onTimeoutCall(Runnable fallback) {
-
-      this.fallback = fallback;
-      return this;
-    }
-
-    public void thenCall(Consumer<String> messageCallback) {
-
-      addMessageConsumer.accept(new AwaitMessage(regex, messageCallback, fromNow(timeout), fallback));
-    }
-
-    public void thenDoNothing() {
-
-      addMessageConsumer.accept(new AwaitMessage(regex, message -> {}, fromNow(timeout), fallback));
-    }
-
-    private LocalDateTime fromNow(TemporalAmount amount) {
-
-      return amount != null ? currentTimeSupplier.get().plus(amount) : null;
-    }
+    return false;
   }
 
-  @Getter(AccessLevel.PRIVATE)
-  private static class AwaitMessage {
+  @Override
+  public void reconnect() {
 
-    private final String           regex;
-    private final LocalDateTime    timeout;
-    private final Runnable         fallback;
-    private final Consumer<String> messageCallback;
+    reconnect(() -> {});
+  }
 
-    private AwaitMessage(String regex, Consumer<String> messageCallback, LocalDateTime timeout,
-                         Runnable fallback) {
+  @Override
+  public void reconnect(Runnable onSuccess) {
 
-      this.regex           = regex;
-      this.messageCallback = messageCallback;
-      this.timeout         = timeout;
-      this.fallback        = fallback;
+    while (!trySingleReconnect()) {
+      // keep trying
     }
 
-    private static AwaitMessage empty() {
+    onSuccess.run();
+  }
 
-      return new AwaitMessage("", s -> {}, null, () -> {});
-    }
+  @Override
+  public void reconnect(int maxTries) {
+
+    reconnect(maxTries, b -> {});
+  }
+
+  @Override
+  public void reconnect(int maxTries, Consumer<Boolean> success) {
+
+    success.accept(
+        IntStream
+            .range(0, maxTries)
+            .anyMatch(i -> trySingleReconnect()));
+  }
+
+  @Override
+  public String sendPing() {
+
+    String random = UUID.randomUUID().toString();
+    sendLine("PING " + random + CRLF);
+
+    return random;
   }
 }

@@ -4,6 +4,7 @@ import de.scaramanga.lily.irc.connection.actions.BroadcastActionData;
 import de.scaramanga.lily.irc.connection.actions.ConnectionAction;
 import de.scaramanga.lily.irc.connection.actions.JoinActionData;
 import de.scaramanga.lily.irc.connection.actions.LeaveActionData;
+import de.scaramanga.lily.irc.connection.ping.PingHandler;
 import de.scaramanga.lily.irc.interfaces.MessageHandler;
 import de.scaramanga.lily.irc.interfaces.RootMessageHandler;
 import de.scaramanga.lily.testutils.InputStreamMock;
@@ -26,7 +27,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static de.scaramanga.lily.irc.connection.actions.ConnectionAction.ConnectionActionType.*;
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.Mockito.*;
 
@@ -50,6 +51,7 @@ class ConnectionTest {
   private              ConnectionActionQueue actionQueueMock;
   private              LocalDateTime         currentTime;
   private              Connection            connection;
+  private              PingHandler           pingHandlerMock;
 
   @BeforeEach
   void setup() throws IOException {
@@ -59,6 +61,7 @@ class ConnectionTest {
     rootHandlerMock    = mock(RootMessageHandler.class);
     inputStreamMock    = InputStreamMock.getInputStreamMock();
     socketMock         = mock(Socket.class);
+    pingHandlerMock    = mock(PingHandler.class);
     InputStream  socketInputStreamMock  = inputStreamMock.getMock();
     OutputStream socketOutputStreamMock = mock(OutputStream.class);
 
@@ -75,7 +78,7 @@ class ConnectionTest {
     when(messageHandlerMock.handleMessage(REGEX_TRIGGER)).thenReturn(MessageAnswer.ignoreAnswer());
 
     connection = new Connection(HOST, PORT, messageHandlerMock, rootHandlerMock, (a, b) -> socketMock, actionQueueMock,
-                                () -> currentTime);
+                                () -> currentTime, pingHandlerMock);
   }
 
   @Test
@@ -238,6 +241,30 @@ class ConnectionTest {
     soft.assertThat(fallbackCalled.get()).isTrue();
 
     soft.assertAll();
+  }
+
+  @Test
+  void callsPingHandlerWhenNothingReceived() {
+
+    connection.call(false, false);
+
+    verify(pingHandlerMock).checkedForMessage(connection, false);
+  }
+
+  @Test
+  void callsPingHandlerWhenMessageWasReceived() {
+
+    inputStreamMock.provideLine(MESSAGE + CRLF);
+
+    when(messageHandlerMock.handleMessage(MESSAGE)).thenReturn(MessageAnswer.ignoreAnswer());
+    connection.call(false, false);
+
+    verify(pingHandlerMock).checkedForMessage(connection, true);
+  }
+
+  @Test
+  void reconnects() {
+    fail("Test case 'reconnects' not implemented.");
   }
 
   private Answer<Void> writeToBuffer(InvocationOnMock invocation) {
