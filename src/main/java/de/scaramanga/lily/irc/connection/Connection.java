@@ -18,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
 
 import java.io.BufferedReader;
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
@@ -52,6 +53,7 @@ class Connection implements Callable<Void>, Reconnectable {
   private final Supplier<LocalDateTime> currentTimeSupplier;
   private final PingHandler             pingHandler;
 
+  private Socket         socket;
   private BufferedReader reader;
   private Writer         writer;
 
@@ -84,6 +86,7 @@ class Connection implements Callable<Void>, Reconnectable {
     try {
       call(true, true);
     } catch (IrcConnectionException e) {
+      LOGGER.error("{}: {}", e.getClass().getSimpleName(), e.getMessage());
       Thread.currentThread().interrupt();
     }
 
@@ -95,8 +98,7 @@ class Connection implements Callable<Void>, Reconnectable {
     socketSetup();
 
     if (establishConnection) {
-      List<String> join = rootHandler.joinMessages();
-      join.forEach(this::sendLine);
+      rootHandler.joinMessages().forEach(this::sendLine);
     }
 
     do {
@@ -117,7 +119,7 @@ class Connection implements Callable<Void>, Reconnectable {
 
   void socketSetup() {
 
-    Socket socket = socketSupplier.get();
+    socket = socketSupplier.get();
 
     try {
       reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -262,9 +264,29 @@ class Connection implements Callable<Void>, Reconnectable {
     awaitMessages.add(awaitMessage);
   }
 
-  boolean trySingleReconnect() {
+  private boolean trySingleReconnect() {
 
-    return false;
+    LOGGER.info("Trying to reconnect...");
+    closeSilently(reader, writer, socket);
+
+    try {
+      socketSetup();
+    } catch (IrcConnectionException e) {
+      return false;
+    }
+
+    return true;
+  }
+
+  private void closeSilently(Closeable... toClose) {
+
+    for (Closeable closeable : toClose) {
+      try {
+        closeable.close();
+      } catch (IOException e) {
+        // Do nothing.
+      }
+    }
   }
 
   @Override
