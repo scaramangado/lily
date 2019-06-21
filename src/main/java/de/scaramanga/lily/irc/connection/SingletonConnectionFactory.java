@@ -1,5 +1,6 @@
 package de.scaramanga.lily.irc.connection;
 
+import de.scaramanga.lily.irc.configuration.IrcProperties;
 import de.scaramanga.lily.irc.connection.ping.PingHandler;
 import de.scaramanga.lily.irc.interfaces.MessageHandler;
 import de.scaramanga.lily.irc.interfaces.RootMessageHandler;
@@ -19,7 +20,8 @@ public class SingletonConnectionFactory implements ConnectionFactory {
   private final ConnectionFactory               internalFactory;
 
   @Autowired
-  public SingletonConnectionFactory(PingHandler pingHandler) {
+  public SingletonConnectionFactory(PingHandler pingHandler,
+                                    IrcProperties properties) {
 
     this(ConnectionFactory.pingHandlerFactory(pingHandler));
   }
@@ -30,20 +32,21 @@ public class SingletonConnectionFactory implements ConnectionFactory {
   }
 
   @Override
-  public Connection getConnection(String host, Integer port, MessageHandler messageHandler,
+  public Connection getConnection(IrcProperties properties, MessageHandler messageHandler,
                                   RootMessageHandler rootHandler, SocketFactory socketFactory,
                                   ConnectionActionQueue actionQueue) {
 
-    ConnectionInfo info = new ConnectionInfo(host, port, messageHandler, rootHandler, socketFactory, actionQueue);
+    ConnectionInfo info = new ConnectionInfo(properties.getHost(), properties.getPort(), messageHandler, rootHandler,
+                                             socketFactory, actionQueue);
 
-    connections.computeIfAbsent(info, this::connectionForInfo);
+    connections.computeIfAbsent(info, i -> connectionForInfo(i, properties));
 
     return connections.get(info);
   }
 
-  private Connection connectionForInfo(ConnectionInfo info) {
+  private Connection connectionForInfo(ConnectionInfo info, IrcProperties properties) {
 
-    return internalFactory.getConnection(info.host, info.port, info.messageHandler, info.rootHandler,
+    return internalFactory.getConnection(properties, info.messageHandler, info.rootHandler,
                                          info.socketFactory, info.actionQueue);
   }
 

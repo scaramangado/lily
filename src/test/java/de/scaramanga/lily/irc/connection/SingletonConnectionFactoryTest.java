@@ -1,5 +1,6 @@
 package de.scaramanga.lily.irc.connection;
 
+import de.scaramanga.lily.irc.configuration.IrcProperties;
 import de.scaramanga.lily.irc.interfaces.MessageHandler;
 import de.scaramanga.lily.irc.interfaces.RootMessageHandler;
 import de.scaramanga.lily.irc.interfaces.SocketFactory;
@@ -7,13 +8,15 @@ import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class SingletonConnectionFactoryTest {
 
   private              SingletonConnectionFactory factory;
   private              ConnectionFactory          connectionFactoryMock;
+  private static final IrcProperties              PROPERTIES_1         = new IrcProperties();
+  private static final IrcProperties              PROPERTIES_2         = new IrcProperties();
   private static final String                     HOST_1               = "host";
   private static final String                     HOST_2               = "host2";
   private static final Integer                    PORT                 = 1;
@@ -27,15 +30,20 @@ class SingletonConnectionFactoryTest {
   @BeforeEach
   void setup() {
 
+    PROPERTIES_1.setHost(HOST_1);
+    PROPERTIES_1.setPort(PORT);
+    PROPERTIES_2.setHost(HOST_2);
+    PROPERTIES_2.setPort(PORT);
+
     connectionFactoryMock = mock(ConnectionFactory.class);
     factory               = new SingletonConnectionFactory(connectionFactoryMock);
 
     when(connectionFactoryMock
-             .getConnection(HOST_1, PORT, MESSAGE_HANDLER, ROOT_MESSAGE_HANDLER, SOCKET_FACTORY, ACTION_QUEUE))
+             .getConnection(PROPERTIES_1, MESSAGE_HANDLER, ROOT_MESSAGE_HANDLER, SOCKET_FACTORY, ACTION_QUEUE))
         .thenReturn(CONNECTION_MOCK_1);
 
     when(connectionFactoryMock
-             .getConnection(HOST_2, PORT, MESSAGE_HANDLER, ROOT_MESSAGE_HANDLER, SOCKET_FACTORY, ACTION_QUEUE))
+             .getConnection(PROPERTIES_2, MESSAGE_HANDLER, ROOT_MESSAGE_HANDLER, SOCKET_FACTORY, ACTION_QUEUE))
         .thenReturn(CONNECTION_MOCK_2);
   }
 
@@ -43,31 +51,31 @@ class SingletonConnectionFactoryTest {
   void producesConnectionWithCorrectInfo() {
 
     Connection actualConnection =
-        factory.getConnection(HOST_1, PORT, MESSAGE_HANDLER, ROOT_MESSAGE_HANDLER, SOCKET_FACTORY, ACTION_QUEUE);
+        factory.getConnection(PROPERTIES_1, MESSAGE_HANDLER, ROOT_MESSAGE_HANDLER, SOCKET_FACTORY, ACTION_QUEUE);
 
     assertThat(actualConnection).isEqualTo(CONNECTION_MOCK_1);
 
     verify(connectionFactoryMock)
-        .getConnection(HOST_1, PORT, MESSAGE_HANDLER, ROOT_MESSAGE_HANDLER, SOCKET_FACTORY, ACTION_QUEUE);
+        .getConnection(PROPERTIES_1, MESSAGE_HANDLER, ROOT_MESSAGE_HANDLER, SOCKET_FACTORY, ACTION_QUEUE);
   }
 
   @Test
   void producesConnectionOnlyOnce() {
 
-    factory.getConnection(HOST_1, PORT, MESSAGE_HANDLER, ROOT_MESSAGE_HANDLER, SOCKET_FACTORY, ACTION_QUEUE);
-    factory.getConnection(HOST_1, PORT, MESSAGE_HANDLER, ROOT_MESSAGE_HANDLER, SOCKET_FACTORY, ACTION_QUEUE);
+    factory.getConnection(PROPERTIES_1, MESSAGE_HANDLER, ROOT_MESSAGE_HANDLER, SOCKET_FACTORY, ACTION_QUEUE);
+    factory.getConnection(PROPERTIES_1, MESSAGE_HANDLER, ROOT_MESSAGE_HANDLER, SOCKET_FACTORY, ACTION_QUEUE);
 
     verify(connectionFactoryMock, times(1))
-        .getConnection(HOST_1, PORT, MESSAGE_HANDLER, ROOT_MESSAGE_HANDLER, SOCKET_FACTORY, ACTION_QUEUE);
+        .getConnection(PROPERTIES_1, MESSAGE_HANDLER, ROOT_MESSAGE_HANDLER, SOCKET_FACTORY, ACTION_QUEUE);
   }
 
   @Test
   void producesMultipleDifferentConnections() {
 
     Connection actualConnection1 =
-        factory.getConnection(HOST_1, PORT, MESSAGE_HANDLER, ROOT_MESSAGE_HANDLER, SOCKET_FACTORY, ACTION_QUEUE);
+        factory.getConnection(PROPERTIES_1, MESSAGE_HANDLER, ROOT_MESSAGE_HANDLER, SOCKET_FACTORY, ACTION_QUEUE);
     Connection actualConnection2 =
-        factory.getConnection(HOST_2, PORT, MESSAGE_HANDLER, ROOT_MESSAGE_HANDLER, SOCKET_FACTORY, ACTION_QUEUE);
+        factory.getConnection(PROPERTIES_2, MESSAGE_HANDLER, ROOT_MESSAGE_HANDLER, SOCKET_FACTORY, ACTION_QUEUE);
 
     SoftAssertions soft = new SoftAssertions();
 
@@ -77,7 +85,7 @@ class SingletonConnectionFactoryTest {
     soft.assertAll();
 
     verify(connectionFactoryMock, times(2))
-        .getConnection(anyString(), anyInt(), any(MessageHandler.class), any(RootMessageHandler.class),
+        .getConnection(any(), any(MessageHandler.class), any(RootMessageHandler.class),
                        any(SocketFactory.class), any(ConnectionActionQueue.class));
   }
 }

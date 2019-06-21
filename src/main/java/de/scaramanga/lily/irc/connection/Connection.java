@@ -2,6 +2,7 @@ package de.scaramanga.lily.irc.connection;
 
 import de.scaramanga.lily.irc.await.AwaitMessage;
 import de.scaramanga.lily.irc.await.AwaitMessageBuilder;
+import de.scaramanga.lily.irc.configuration.IrcProperties;
 import de.scaramanga.lily.irc.connection.actions.BroadcastActionData;
 import de.scaramanga.lily.irc.connection.actions.ConnectionAction;
 import de.scaramanga.lily.irc.connection.actions.ConnectionAction.ConnectionActionType;
@@ -43,6 +44,7 @@ import static de.scaramanga.lily.irc.connection.actions.ConnectionAction.Connect
 @Slf4j
 class Connection implements Callable<Void>, Reconnectable {
 
+  private final IrcProperties           properties;
   private final Supplier<Socket>        socketSupplier;
   private final MessageHandler          messageHandler;
   private final RootMessageHandler      rootHandler;
@@ -60,24 +62,25 @@ class Connection implements Callable<Void>, Reconnectable {
   private static final String CRLF               = "\n\r";
   private static final String WRONG_DATA_MESSAGE = "Action data of wrong type.";
 
-  Connection(String host, Integer port, MessageHandler messageHandler, RootMessageHandler rootHandler,
+  Connection(IrcProperties properties, MessageHandler messageHandler, RootMessageHandler rootHandler,
              SocketFactory socketFactory, ConnectionActionQueue actionQueue,
              PingHandler pingHandler) {
 
-    this(host, port, messageHandler, rootHandler, socketFactory, actionQueue, LocalDateTime::now, pingHandler);
+    this(properties, messageHandler, rootHandler, socketFactory, actionQueue, LocalDateTime::now, pingHandler);
   }
 
-  Connection(String host, Integer port, MessageHandler messageHandler, RootMessageHandler rootHandler,
+  Connection(IrcProperties properties, MessageHandler messageHandler, RootMessageHandler rootHandler,
              SocketFactory socketFactory, ConnectionActionQueue actionQueue,
              Supplier<LocalDateTime> currentTimeSupplier,
              PingHandler pingHandler) {
 
+    this.properties          = properties;
     this.messageHandler      = messageHandler;
     this.rootHandler         = rootHandler;
     this.actionQueue         = actionQueue;
     this.currentTimeSupplier = currentTimeSupplier;
     this.pingHandler         = pingHandler;
-    this.socketSupplier      = () -> socketFactory.getSocket(host, port);
+    this.socketSupplier      = () -> socketFactory.getSocket(properties.getHost(), properties.getPort());
   }
 
   @Override
@@ -272,9 +275,12 @@ class Connection implements Callable<Void>, Reconnectable {
     try {
       socketSetup();
     } catch (IrcConnectionException e) {
+
+      LOGGER.error("Reconnect failed: {}", e.getMessage());
       return false;
     }
 
+    LOGGER.info("Reconnect successful.");
     return true;
   }
 

@@ -1,5 +1,6 @@
 package de.scaramanga.lily.irc.connection;
 
+import de.scaramanga.lily.irc.configuration.IrcProperties;
 import de.scaramanga.lily.irc.connection.actions.BroadcastActionData;
 import de.scaramanga.lily.irc.connection.actions.ConnectionAction;
 import de.scaramanga.lily.irc.connection.actions.JoinActionData;
@@ -28,7 +29,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static de.scaramanga.lily.irc.connection.actions.ConnectionAction.ConnectionActionType.*;
 import static org.assertj.core.api.Assertions.*;
-import static org.awaitility.Awaitility.await;
+import static org.awaitility.Awaitility.*;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.*;
 
 class ConnectionTest {
@@ -42,6 +44,7 @@ class ConnectionTest {
   private static final String[]              STRING_LIST_LF = new String[]{ "a" + CRLF, "b" + CRLF, "c" + CRLF };
   private static final String                EXPECTED_REGEX = "test.*";
   private static final String                REGEX_TRIGGER  = "testAbc";
+  private              IrcProperties         properties     = new IrcProperties();
   private              MessageHandler        messageHandlerMock;
   private              RootMessageHandler    rootHandlerMock;
   private              Socket                socketMock;
@@ -55,6 +58,9 @@ class ConnectionTest {
 
   @BeforeEach
   void setup() throws IOException {
+
+    properties.setHost(HOST);
+    properties.setPort(PORT);
 
     actionQueueMock    = mock(ConnectionActionQueue.class);
     messageHandlerMock = mock(MessageHandler.class);
@@ -77,7 +83,7 @@ class ConnectionTest {
 
     when(messageHandlerMock.handleMessage(REGEX_TRIGGER)).thenReturn(MessageAnswer.ignoreAnswer());
 
-    connection = new Connection(HOST, PORT, messageHandlerMock, rootHandlerMock, (a, b) -> socketMock, actionQueueMock,
+    connection = new Connection(properties, messageHandlerMock, rootHandlerMock, (a, b) -> socketMock, actionQueueMock,
                                 () -> currentTime, pingHandlerMock);
   }
 
@@ -264,6 +270,7 @@ class ConnectionTest {
 
   @Test
   void reconnects() {
+
     fail("Test case 'reconnects' not implemented.");
   }
 

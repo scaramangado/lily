@@ -45,7 +45,7 @@ class ConnectionManagerTest {
     properties.setChannels(new ArrayList<>());
 
     manager = new ConnectionManager(properties, messageHandlerMock, rootMessageHandlerMock, socketFactoryMock,
-                                    actionQueue, (a, b, c, d, e, f) -> connectionMock);
+                                    actionQueue, (a, b, c, d, e) -> connectionMock);
   }
 
   @Test
