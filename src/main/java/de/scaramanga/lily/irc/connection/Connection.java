@@ -284,17 +284,6 @@ class Connection implements Callable<Void>, Reconnectable {
     return true;
   }
 
-  private void closeSilently(Closeable... toClose) {
-
-    for (Closeable closeable : toClose) {
-      try {
-        closeable.close();
-      } catch (IOException e) {
-        // Do nothing.
-      }
-    }
-  }
-
   @Override
   public void reconnect() {
 
@@ -305,7 +294,11 @@ class Connection implements Callable<Void>, Reconnectable {
   public void reconnect(Runnable onSuccess) {
 
     while (!trySingleReconnect()) {
-      // keep trying
+      try {
+        Thread.sleep(properties.getTimeBetweenReconnects() * 1000L);
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+      }
     }
 
     onSuccess.run();
@@ -323,7 +316,9 @@ class Connection implements Callable<Void>, Reconnectable {
     success.accept(
         IntStream
             .range(0, maxTries)
-            .anyMatch(i -> trySingleReconnect()));
+            .filter(i -> sleep(i, properties.getTimeBetweenReconnects() * 1000L))
+            .anyMatch(i -> trySingleReconnect())
+    );
   }
 
   @Override
@@ -333,5 +328,32 @@ class Connection implements Callable<Void>, Reconnectable {
     sendLine("PING " + random + CRLF);
 
     return random;
+  }
+
+  private void closeSilently(Closeable... toClose) {
+
+    for (Closeable closeable : toClose) {
+      try {
+        closeable.close();
+      } catch (IOException | NullPointerException e) {
+        // Do nothing.
+      }
+    }
+  }
+
+  private boolean sleep(int loopCount, Long millis) {
+
+    // First reconnect attempt should not be delayed.
+    if (loopCount == 0) {
+      return true;
+    }
+
+    try {
+      Thread.sleep(millis);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+    }
+
+    return true;
   }
 }

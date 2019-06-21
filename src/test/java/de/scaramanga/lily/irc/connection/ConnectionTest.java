@@ -6,8 +6,10 @@ import de.scaramanga.lily.irc.connection.actions.ConnectionAction;
 import de.scaramanga.lily.irc.connection.actions.JoinActionData;
 import de.scaramanga.lily.irc.connection.actions.LeaveActionData;
 import de.scaramanga.lily.irc.connection.ping.PingHandler;
+import de.scaramanga.lily.irc.exception.IrcConnectionException;
 import de.scaramanga.lily.irc.interfaces.MessageHandler;
 import de.scaramanga.lily.irc.interfaces.RootMessageHandler;
+import de.scaramanga.lily.irc.interfaces.SocketFactory;
 import de.scaramanga.lily.testutils.InputStreamMock;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,6 +25,8 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -48,6 +52,7 @@ class ConnectionTest {
   private              MessageHandler        messageHandlerMock;
   private              RootMessageHandler    rootHandlerMock;
   private              Socket                socketMock;
+  private              SocketFactory         socketFactoryMock;
   private              InputStreamMock       inputStreamMock;
   private              List<String>          outputBuffer;
   private              List<String>          output;
@@ -61,6 +66,7 @@ class ConnectionTest {
 
     properties.setHost(HOST);
     properties.setPort(PORT);
+    properties.setTimeBetweenReconnects(0);
 
     actionQueueMock    = mock(ConnectionActionQueue.class);
     messageHandlerMock = mock(MessageHandler.class);
@@ -70,6 +76,9 @@ class ConnectionTest {
     pingHandlerMock    = mock(PingHandler.class);
     InputStream  socketInputStreamMock  = inputStreamMock.getMock();
     OutputStream socketOutputStreamMock = mock(OutputStream.class);
+
+    socketFactoryMock = mock(SocketFactory.class);
+    when(socketFactoryMock.getSocket(any(), anyInt())).thenReturn(socketMock);
 
     outputBuffer = new ArrayList<>();
     output       = new ArrayList<>();
@@ -83,7 +92,7 @@ class ConnectionTest {
 
     when(messageHandlerMock.handleMessage(REGEX_TRIGGER)).thenReturn(MessageAnswer.ignoreAnswer());
 
-    connection = new Connection(properties, messageHandlerMock, rootHandlerMock, (a, b) -> socketMock, actionQueueMock,
+    connection = new Connection(properties, messageHandlerMock, rootHandlerMock, socketFactoryMock, actionQueueMock,
                                 () -> currentTime, pingHandlerMock);
   }
 
@@ -269,9 +278,111 @@ class ConnectionTest {
   }
 
   @Test
-  void reconnects() {
+  void ignoresMaxRetryCountIfCorrespondingMethodIsCalled() {
 
-    fail("Test case 'reconnects' not implemented.");
+    properties.setTriesToReconnect(1);
+
+    when(socketFactoryMock.getSocket(any(), anyInt()))
+        .thenThrow(IrcConnectionException.class)
+        .thenThrow(IrcConnectionException.class)
+        .thenReturn(socketMock);
+
+    connection.reconnect();
+
+    verify(socketFactoryMock, times(3)).getSocket(any(), anyInt());
+  }
+
+  @Test
+  void ignoresMaxRetryCountAndCallsRunnable() {
+
+    AtomicBoolean called = new AtomicBoolean(false);
+
+    properties.setTriesToReconnect(1);
+
+    when(socketFactoryMock.getSocket(any(), anyInt()))
+        .thenThrow(IrcConnectionException.class)
+        .thenThrow(IrcConnectionException.class)
+        .thenReturn(socketMock);
+
+    connection.reconnect(() -> called.set(true));
+
+    verify(socketFactoryMock, times(3)).getSocket(any(), anyInt());
+    assertThat(called.get()).isTrue();
+  }
+
+  @Test
+  void abortsReconnectingWhenMaxIsSet() {
+
+    when(socketFactoryMock.getSocket(any(), anyInt())).thenThrow(IrcConnectionException.class);
+
+    connection.reconnect(2);
+
+    verify(socketFactoryMock, times(2)).getSocket(any(), anyInt());
+  }
+
+  @Test
+  void abortReconnectAndCallsFallbackWhenMaxIsSetAndFails() {
+
+    AtomicBoolean result = new AtomicBoolean(true);
+
+    when(socketFactoryMock.getSocket(any(), anyInt())).thenThrow(IrcConnectionException.class);
+
+    connection.reconnect(2, result::set);
+
+    verify(socketFactoryMock, times(2)).getSocket(any(), anyInt());
+    assertThat(result.get()).isFalse();
+  }
+
+  @Test
+  void abortsReconnectAndCallsFallbackWhenMaxIsSetAndSucceeds() {
+
+    AtomicBoolean result = new AtomicBoolean(false);
+
+    when(socketFactoryMock.getSocket(any(), anyInt()))
+        .thenThrow(IrcConnectionException.class)
+        .thenReturn(socketMock);
+
+    connection.reconnect(3, result::set);
+
+    verify(socketFactoryMock, times(2)).getSocket(any(), anyInt());
+    assertThat(result.get()).isTrue();
+  }
+
+  @Test
+  void delaysReconnectWithoutMaxRetries() {
+
+    properties.setTimeBetweenReconnects(1);
+
+    when(socketFactoryMock.getSocket(any(), anyInt()))
+        .thenThrow(IrcConnectionException.class)
+        .thenReturn(socketMock);
+
+    ExecutorService service = Executors.newSingleThreadExecutor();
+    service.submit(() -> connection.reconnect());
+
+    verify(socketFactoryMock, after(900L).atMost(1)).getSocket(any(), anyInt());
+    verify(socketFactoryMock, after(1100L).times(2)).getSocket(any(), anyInt());
+  }
+
+  @Test
+  void delaysReconnectWithMaxRetries() {
+
+    properties.setTimeBetweenReconnects(1);
+
+    when(socketFactoryMock.getSocket(any(), anyInt()))
+        .thenThrow(IrcConnectionException.class)
+        .thenReturn(socketMock);
+
+    ExecutorService service = Executors.newSingleThreadExecutor();
+    service.submit(() -> connection.reconnect(3));
+
+    verify(socketFactoryMock, after(900L).atMost(1)).getSocket(any(), anyInt());
+    verify(socketFactoryMock, after(1100L).times(2)).getSocket(any(), anyInt());
+  }
+
+  @Test
+  void sendsInitialMessagesAfterReconnecting() {
+    fail("Test case 'sendsInitialMessagesAfterReconnecting' not implemented.");
   }
 
   private Answer<Void> writeToBuffer(InvocationOnMock invocation) {
