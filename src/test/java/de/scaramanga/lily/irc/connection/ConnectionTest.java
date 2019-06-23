@@ -24,6 +24,7 @@ import java.net.Socket;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -382,7 +383,23 @@ class ConnectionTest {
 
   @Test
   void sendsInitialMessagesAfterReconnecting() {
-    fail("Test case 'sendsInitialMessagesAfterReconnecting' not implemented.");
+
+    when(rootHandlerMock.joinMessages()).thenReturn(STRING_LIST);
+
+    ConnectionAction join = new ConnectionAction(JOIN, JoinActionData.withChannelName(CHANNEL));
+    when(actionQueueMock.nextAction()).thenReturn(join).thenThrow(IndexOutOfBoundsException.class);
+    when(actionQueueMock.hasAction()).thenReturn(true).thenReturn(false);
+    doCallRealMethod().when(actionQueueMock).forAllActions(any());
+
+    connection.call(false, false);
+    output.clear();
+
+    connection.reconnect();
+
+    List<String> expectedOutput = new ArrayList<>(Arrays.asList(STRING_LIST_LF));
+    expectedOutput.add("JOIN #" + CHANNEL + CRLF);
+
+    assertThat(output).containsExactlyElementsOf(expectedOutput);
   }
 
   private Answer<Void> writeToBuffer(InvocationOnMock invocation) {

@@ -280,6 +280,12 @@ class Connection implements Callable<Void>, Reconnectable {
       return false;
     }
 
+    rootHandler.joinMessages().forEach(this::sendLine);
+    channels
+        .stream()
+        .map(JoinActionData::withChannelName)
+        .forEach(this::joinChannel);
+
     LOGGER.info("Reconnect successful.");
     return true;
   }
@@ -341,6 +347,7 @@ class Connection implements Callable<Void>, Reconnectable {
     }
   }
 
+  @SuppressWarnings("squid:S3516") // Used in stream
   private boolean sleep(int loopCount, Long millis) {
 
     // First reconnect attempt should not be delayed.
