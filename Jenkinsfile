@@ -4,16 +4,9 @@ pipeline {
 
     stages {
 
-        stage("Info") {
-            steps {
-                sh "java -version"
-                sh "./gradlew --version"
-            }
-        }
-
         stage("Test") {
             steps {
-                sh "./gradlew test --info"
+                sh "./gradlew test"
             }
         }
 
