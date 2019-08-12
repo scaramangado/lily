@@ -44,11 +44,6 @@ java {
   targetCompatibility = JavaVersion.VERSION_1_8
 }
 
-tasks.compileTestJava {
-  sourceCompatibility = JavaVersion.VERSION_11.toString()
-  targetCompatibility = JavaVersion.VERSION_11.toString()
-}
-
 tasks.withType(Wrapper::class) {
   gradleVersion = "5.5.1"
 }

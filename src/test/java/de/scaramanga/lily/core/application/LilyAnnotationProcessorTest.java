@@ -11,7 +11,10 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -96,6 +99,6 @@ class LilyAnnotationProcessorTest {
 
   private Map<String, Method> getCommandsOfClasses(Class<?>... classes) {
 
-    return LilyAnnotationProcessor.getAllLilyCommands(Set.of(classes));
+    return LilyAnnotationProcessor.getAllLilyCommands(new HashSet<>(Arrays.asList(classes)));
   }
 }

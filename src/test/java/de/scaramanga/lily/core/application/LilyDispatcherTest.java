@@ -60,7 +60,7 @@ class LilyDispatcherTest {
     when(continueInterceptor.process(any(Command.class))).thenReturn(CONTINUE);
     when(stopInterceptor.process(any(Command.class))).thenReturn(STOP);
 
-    answerBroadcaster = new Broadcaster<>() {
+    answerBroadcaster = new Broadcaster<Answer>() {
       @Override
       public void broadcast(Answer broadcast) {
 
@@ -73,7 +73,7 @@ class LilyDispatcherTest {
       }
     };
 
-    testAnswerBroadcaster = new Broadcaster<>() {
+    testAnswerBroadcaster = new Broadcaster<TestAnswer>() {
       @Override
       public void broadcast(TestAnswer broadcast) {
 
