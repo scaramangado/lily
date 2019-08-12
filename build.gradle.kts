@@ -50,7 +50,7 @@ tasks.compileTestJava {
 }
 
 tasks.withType(Wrapper::class) {
-  gradleVersion = "5.1.1"
+  gradleVersion = "5.5.1"
 }
 
 fun DependencyHandler.lombok(version: Any) {
