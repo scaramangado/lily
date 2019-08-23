@@ -12,9 +12,6 @@ import de.scaramanga.lily.irc.connection.actions.LeaveActionData;
 import de.scaramanga.lily.irc.connection.ping.PingHandler;
 import de.scaramanga.lily.irc.connection.ping.Reconnectable;
 import de.scaramanga.lily.irc.exception.IrcConnectionException;
-import de.scaramanga.lily.irc.interfaces.MessageHandler;
-import de.scaramanga.lily.irc.interfaces.RootMessageHandler;
-import de.scaramanga.lily.irc.interfaces.SocketFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
 

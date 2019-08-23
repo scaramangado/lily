@@ -1,17 +1,15 @@
 package de.scaramanga.lily.irc.connection.actions;
 
-public class BroadcastActionData extends ConnectionActionData {
+import lombok.Getter;
 
-  private static final String MESSAGE = "message";
+@Getter
+public class BroadcastActionData implements ConnectionActionData {
+
+  private final String message;
 
   private BroadcastActionData(String message) {
 
-    data.setProperty(MESSAGE, message);
-  }
-
-  public String getMessage() {
-
-    return data.getProperty(MESSAGE);
+    this.message = message;
   }
 
   public static BroadcastActionData withMessage(String message) {

@@ -1,9 +1,6 @@
 package de.scaramanga.lily.irc.connection;
 
 import de.scaramanga.lily.irc.configuration.IrcProperties;
-import de.scaramanga.lily.irc.interfaces.MessageHandler;
-import de.scaramanga.lily.irc.interfaces.RootMessageHandler;
-import de.scaramanga.lily.irc.interfaces.SocketFactory;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

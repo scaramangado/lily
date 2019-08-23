@@ -1,4 +1,4 @@
-package de.scaramanga.lily.irc.interfaces;
+package de.scaramanga.lily.irc.connection;
 
 import de.scaramanga.lily.irc.connection.MessageAnswer;
 

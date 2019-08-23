@@ -1,4 +1,4 @@
-package de.scaramanga.lily.irc.interfaces;
+package de.scaramanga.lily.irc.connection;
 
 import java.util.List;
 

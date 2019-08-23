@@ -2,7 +2,6 @@ package de.scaramanga.lily.irc.connection;
 
 import de.scaramanga.lily.core.communication.Answer;
 import de.scaramanga.lily.core.communication.Dispatcher;
-import de.scaramanga.lily.irc.interfaces.MessageHandler;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
@@ -11,7 +10,7 @@ import java.util.Optional;
 import java.util.function.Function;
 
 @Component
-public class IrcMessageHandler implements MessageHandler {
+class IrcMessageHandler implements MessageHandler {
 
   private final Dispatcher                                   dispatcher;
   private       Map<String, Function<String, MessageAnswer>> functionMap;

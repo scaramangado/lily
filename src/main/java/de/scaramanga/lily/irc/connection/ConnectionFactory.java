@@ -2,9 +2,6 @@ package de.scaramanga.lily.irc.connection;
 
 import de.scaramanga.lily.irc.configuration.IrcProperties;
 import de.scaramanga.lily.irc.connection.ping.PingHandler;
-import de.scaramanga.lily.irc.interfaces.MessageHandler;
-import de.scaramanga.lily.irc.interfaces.RootMessageHandler;
-import de.scaramanga.lily.irc.interfaces.SocketFactory;
 
 interface ConnectionFactory {
 

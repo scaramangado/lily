@@ -6,7 +6,7 @@ import java.util.Arrays;
 import java.util.List;
 
 @Getter
-public class MessageAnswer {
+class MessageAnswer {
 
   private final AnswerType   answerType;
   private final List<String> lines;

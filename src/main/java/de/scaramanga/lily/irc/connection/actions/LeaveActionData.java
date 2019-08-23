@@ -1,18 +1,13 @@
 package de.scaramanga.lily.irc.connection.actions;
 
-public class LeaveActionData extends ConnectionActionData {
+import lombok.Getter;
+import lombok.Setter;
 
-  private static final String CHANNEL_NAME = "channelName";
+@Getter
+@Setter
+public class LeaveActionData implements ConnectionActionData {
 
-  public String getChannelName() {
-
-    return data.getProperty(CHANNEL_NAME);
-  }
-
-  public void setChannelName(String channelName) {
-
-    data.setProperty(CHANNEL_NAME, channelName);
-  }
+  private String channelName;
 
   public static LeaveActionData withChannelName(String channelName) {
 
