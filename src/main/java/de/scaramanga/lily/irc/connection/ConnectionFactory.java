@@ -9,6 +9,7 @@ interface ConnectionFactory {
                            SocketFactory socketFactory, ConnectionActionQueue actionQueue);
 
   static ConnectionFactory pingHandlerFactory(PingHandler pingHandler) {
+
     return (properties, messageHandler, rootHandler, socketFactory, actionQueue) ->
         new Connection(properties, messageHandler, rootHandler, socketFactory, actionQueue, pingHandler);
   }

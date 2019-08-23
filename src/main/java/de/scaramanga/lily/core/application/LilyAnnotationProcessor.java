@@ -1,16 +1,15 @@
 package de.scaramanga.lily.core.application;
 
-import lombok.extern.slf4j.Slf4j;
-import org.reflections.Reflections;
-import org.reflections.scanners.MethodAnnotationsScanner;
-import org.reflections.util.ClasspathHelper;
-import org.reflections.util.ConfigurationBuilder;
-
 import de.scaramanga.lily.core.annotations.LilyCommand;
 import de.scaramanga.lily.core.annotations.LilyModule;
 import de.scaramanga.lily.core.communication.Answer;
 import de.scaramanga.lily.core.communication.Command;
 import de.scaramanga.lily.core.exceptions.LilyRuntimeException;
+import lombok.extern.slf4j.Slf4j;
+import org.reflections.Reflections;
+import org.reflections.scanners.MethodAnnotationsScanner;
+import org.reflections.util.ClasspathHelper;
+import org.reflections.util.ConfigurationBuilder;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;

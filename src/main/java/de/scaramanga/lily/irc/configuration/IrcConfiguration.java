@@ -1,7 +1,7 @@
 package de.scaramanga.lily.irc.configuration;
 
-import de.scaramanga.lily.irc.exception.IrcConnectionException;
 import de.scaramanga.lily.irc.connection.SocketFactory;
+import de.scaramanga.lily.irc.exception.IrcConnectionException;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 

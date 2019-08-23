@@ -1,9 +1,5 @@
 package de.scaramanga.lily.core.application;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationContext;
-import org.springframework.stereotype.Component;
-
 import de.scaramanga.lily.core.annotations.LilyModule;
 import de.scaramanga.lily.core.communication.Answer;
 import de.scaramanga.lily.core.communication.AnswerInfo;
@@ -13,6 +9,9 @@ import de.scaramanga.lily.core.communication.CommandInterceptor;
 import de.scaramanga.lily.core.communication.Dispatcher;
 import de.scaramanga.lily.core.communication.MessageInfo;
 import de.scaramanga.lily.core.configuration.LilyConfiguration;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationContext;
+import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
@@ -24,7 +23,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static de.scaramanga.lily.core.communication.CommandInterceptor.ContinuationStrategy.STOP;
+import static de.scaramanga.lily.core.communication.CommandInterceptor.ContinuationStrategy.*;
 
 @Component
 @Slf4j
@@ -58,7 +57,7 @@ class LilyDispatcher implements Dispatcher {
     Method method = commands.get(command.getName());
 
     try {
-      return Optional.of((Answer) method.invoke(ac.getBean(method.getDeclaringClass()), (Object) command));
+      return Optional.of((Answer) method.invoke(ac.getBean(method.getDeclaringClass()), command));
     } catch (NullPointerException e) {
       // Command not defined.
     } catch (Exception e) {

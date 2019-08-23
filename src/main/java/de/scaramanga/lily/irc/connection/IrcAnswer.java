@@ -13,6 +13,7 @@ public class IrcAnswer implements Answer<IrcAnswerInfo> {
   private IrcAnswerInfo answerInfo;
 
   public static IrcAnswer with(String text, IrcAnswerInfo answerInfo) {
+
     return new IrcAnswer(text, answerInfo);
   }
 }

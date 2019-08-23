@@ -15,6 +15,7 @@ public class IrcMessageInfo implements MessageInfo {
   private String channel;
 
   static IrcMessageInfo with(String nick, String channel) {
+
     return new IrcMessageInfo(nick, channel);
   }
 }
