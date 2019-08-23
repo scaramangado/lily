@@ -41,8 +41,11 @@ class IrcMessageHandler implements MessageHandler {
     String[] parts       = message.split(":");
     String   chatMessage = parts[2];
 
+    String nick = parts[1].split("!")[0];
+    String channel = parts[1].split("#")[1].trim();
+
     return dispatcher
-        .dispatch(chatMessage, null)
+        .dispatch(chatMessage, IrcMessageInfo.with(nick, channel))
         .map(Answer::getText)
         .map(answerString -> composeMessageAnswer(answerString, parts))
         .orElse(MessageAnswer.ignoreAnswer());

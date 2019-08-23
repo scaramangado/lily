@@ -2,8 +2,10 @@ package de.scaramanga.lily.irc.connection;
 
 import de.scaramanga.lily.core.communication.Answer;
 import de.scaramanga.lily.core.communication.Dispatcher;
+import de.scaramanga.lily.core.communication.MessageInfo;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
@@ -25,11 +27,11 @@ class IrcMessageHandlerTest {
   private static final String            PING     = "PING :abc";
   private static final String            PONG     = "PONG :abc";
   private static final String            UNKNOWN  = "abc";
-  private static final String            DISPATCH = ":user!user@user.tld PRIVMSG #channel :abc";
+  private static final String            DISPATCH = ":user!user2@user3.tld PRIVMSG #channel :abc";
   private static final String            ANSWER   = "PRIVMSG #channel :def";
 
   @Autowired
-  public IrcMessageHandlerTest(IrcMessageHandler messageHandler, Dispatcher dispatcher) {
+  IrcMessageHandlerTest(IrcMessageHandler messageHandler, Dispatcher dispatcher) {
 
     this.messageHandler = messageHandler;
     this.dispatcher     = dispatcher;
@@ -65,7 +67,7 @@ class IrcMessageHandlerTest {
   @Test
   void dispatchesMessageAndResponds() {
 
-    when(dispatcher.dispatch("abc", null)).thenReturn(Optional.of(Answer.ofText("def")));
+    when(dispatcher.dispatch(eq("abc"), any(MessageInfo.class))).thenReturn(Optional.of(Answer.ofText("def")));
 
     MessageAnswer answer = messageHandler.handleMessage(DISPATCH);
 
@@ -82,5 +84,20 @@ class IrcMessageHandlerTest {
     MessageAnswer ignore = messageHandler.handleMessage(DISPATCH);
 
     assertThat(ignore.getAnswerType()).isEqualTo(IGNORE);
+  }
+
+  @Test
+  void providesCorrectMessageInfo() {
+
+    when(dispatcher.dispatch(anyString(), any(MessageInfo.class))).thenReturn(Optional.empty());
+
+    ArgumentCaptor<MessageInfo> messageInfoArgumentCaptor = ArgumentCaptor.forClass(MessageInfo.class);
+    verify(dispatcher).dispatch(anyString(), messageInfoArgumentCaptor.capture());
+
+    MessageInfo messageInfo = messageInfoArgumentCaptor.getValue();
+    assertThat(messageInfo).isInstanceOf(IrcMessageInfo.class);
+
+    IrcMessageInfo ircMessageInfo = (IrcMessageInfo) messageInfo;
+    assertThat(ircMessageInfo).isEqualTo(IrcMessageInfo.with("user", "channel"));
   }
 }
