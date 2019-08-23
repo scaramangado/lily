@@ -143,8 +143,8 @@ class LilyDispatcherTest {
   @Test
   void broadcastsToAllRegisteredBroadcasters() {
 
-    dispatcher.addBroadcaster(answerBroadcaster);
-    dispatcher.addBroadcaster(testAnswerBroadcaster);
+    dispatcher.addBroadcaster(answerBroadcaster, Answer.class);
+    dispatcher.addBroadcaster(testAnswerBroadcaster, TestAnswer.class);
 
     TestAnswer answer = new TestAnswer();
 
@@ -161,8 +161,8 @@ class LilyDispatcherTest {
   @Test
   void doesNotBroadcastToBroadcastersWithSubclass() {
 
-    dispatcher.addBroadcaster(answerBroadcaster);
-    dispatcher.addBroadcaster(testAnswerBroadcaster);
+    dispatcher.addBroadcaster(answerBroadcaster, Answer.class);
+    dispatcher.addBroadcaster(testAnswerBroadcaster, TestAnswer.class);
 
     Answer answer = Answer.ofText("test");
 

@@ -33,7 +33,7 @@ public interface Dispatcher {
    * @param broadcaster
    *     The broadcaster object.
    */
-  void addBroadcaster(Broadcaster<? extends Answer> broadcaster);
+  <T extends Answer> void addBroadcaster(Broadcaster<T> broadcaster, Class<T> clazz);
 
   /**
    * Broadcast a message.

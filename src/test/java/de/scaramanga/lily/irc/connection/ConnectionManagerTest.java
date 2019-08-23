@@ -1,5 +1,6 @@
 package de.scaramanga.lily.irc.connection;
 
+import de.scaramanga.lily.core.communication.Dispatcher;
 import de.scaramanga.lily.irc.configuration.IrcProperties;
 import de.scaramanga.lily.irc.connection.actions.BroadcastActionData;
 import de.scaramanga.lily.irc.connection.actions.ConnectionAction;
@@ -16,7 +17,7 @@ import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
 import static de.scaramanga.lily.irc.connection.actions.ConnectionAction.ConnectionActionType.*;
-import static org.awaitility.Awaitility.await;
+import static org.awaitility.Awaitility.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(SpringExtension.class)
@@ -30,6 +31,7 @@ class ConnectionManagerTest {
   private              ConnectionActionQueue actionQueue;
   private              IrcProperties         properties;
   private              Connection            connectionMock         = mock(Connection.class);
+  private              Dispatcher            dispatcherMock         = mock(Dispatcher.class);
   private static final String                CHANNEL                = "channel";
   private static final String                MESSAGE                = "message";
 
@@ -42,7 +44,7 @@ class ConnectionManagerTest {
     properties.setChannels(new ArrayList<>());
 
     manager = new ConnectionManager(properties, messageHandlerMock, rootMessageHandlerMock, socketFactoryMock,
-                                    actionQueue, (a, b, c, d, e) -> connectionMock);
+                                    actionQueue, (a, b, c, d, e) -> connectionMock, dispatcherMock);
   }
 
   @Test
@@ -127,19 +129,28 @@ class ConnectionManagerTest {
   @Test
   void publishesBroadcastAction() {
 
-    manager.broadcast(MESSAGE);
+    IrcAnswer answer = IrcAnswer.with(MESSAGE, null);
+
+    manager.broadcast(answer);
 
     await().atMost(1, TimeUnit.SECONDS).until(() -> actionQueue.showNextAction() != null);
 
-    ConnectionAction leave = actionQueue.nextAction();
+    ConnectionAction broadcast = actionQueue.nextAction();
 
     SoftAssertions soft = new SoftAssertions();
 
-    soft.assertThat(leave.getType()).isEqualTo(BROADCAST);
-    soft.assertThat(((BroadcastActionData) leave.getData()).getMessage()).isEqualTo(MESSAGE);
-    soft.assertThatThrownBy(() -> actionQueue.nextAction()).isExactlyInstanceOf(IndexOutOfBoundsException.class);;
+    soft.assertThat(broadcast.getType()).isEqualTo(BROADCAST);
+    soft.assertThat(((BroadcastActionData) broadcast.getData()).getMessage()).isEqualTo(MESSAGE);
+    soft.assertThatThrownBy(() -> actionQueue.nextAction()).isExactlyInstanceOf(IndexOutOfBoundsException.class);
+    ;
 
     soft.assertAll();
+  }
+
+  @Test
+  void registersAsBroadcaster() {
+
+    verify(dispatcherMock).addBroadcaster(manager, IrcAnswer.class);
   }
 
   private void assertDisconnectActionSent() {

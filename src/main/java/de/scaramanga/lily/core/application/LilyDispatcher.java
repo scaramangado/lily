@@ -91,7 +91,7 @@ class LilyDispatcher implements Dispatcher {
   }
 
   @Override
-  public void addBroadcaster(Broadcaster<? extends Answer> broadcaster) {
+  public <T extends Answer> void addBroadcaster(Broadcaster<T> broadcaster, Class<T> clazz) {
 
     if (!broadcasters.contains(broadcaster)) {
       broadcasters.add(broadcaster);

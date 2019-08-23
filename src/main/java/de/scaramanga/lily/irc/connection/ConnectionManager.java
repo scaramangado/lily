@@ -1,5 +1,7 @@
 package de.scaramanga.lily.irc.connection;
 
+import de.scaramanga.lily.core.communication.Broadcaster;
+import de.scaramanga.lily.core.communication.Dispatcher;
 import de.scaramanga.lily.irc.configuration.IrcProperties;
 import de.scaramanga.lily.irc.connection.actions.BroadcastActionData;
 import de.scaramanga.lily.irc.connection.actions.ConnectionAction;
@@ -19,7 +21,7 @@ import static de.scaramanga.lily.irc.connection.actions.ConnectionAction.Connect
 
 @Component
 @Slf4j
-public class ConnectionManager {
+public class ConnectionManager implements Broadcaster<IrcAnswer> {
 
   private final IrcProperties         properties;
   private final MessageHandler        messageHandler;
@@ -32,7 +34,8 @@ public class ConnectionManager {
 
   public ConnectionManager(IrcProperties properties, MessageHandler messageHandler,
                            RootMessageHandler rootMessageHandler, SocketFactory socketFactory,
-                           ConnectionActionQueue actionQueue, ConnectionFactory connectionFactory) {
+                           ConnectionActionQueue actionQueue, ConnectionFactory connectionFactory,
+                           Dispatcher dispatcher) {
 
     this.properties         = properties;
     this.messageHandler     = messageHandler;
@@ -40,6 +43,7 @@ public class ConnectionManager {
     this.socketFactory      = socketFactory;
     this.actionQueue        = actionQueue;
     this.connectionFactory  = connectionFactory;
+    dispatcher.addBroadcaster(this, IrcAnswer.class);
   }
 
   @EventListener
@@ -74,11 +78,6 @@ public class ConnectionManager {
     sendAction(new ConnectionAction(LEAVE, LeaveActionData.withChannelName(channel)));
   }
 
-  public void broadcast(String message) {
-
-    sendAction(new ConnectionAction(BROADCAST, BroadcastActionData.withMessage(message)));
-  }
-
   public void disconnect() {
 
     sendAction(new ConnectionAction(DISCONNECT));
@@ -88,5 +87,16 @@ public class ConnectionManager {
   private void sendAction(ConnectionAction action) {
 
     executor.submit(() -> actionQueue.addAction(action));
+  }
+
+  @Override
+  public void broadcast(IrcAnswer broadcast) {
+
+    sendAction(new ConnectionAction(BROADCAST, BroadcastActionData.withMessage(broadcast.getText())));
+  }
+
+  @Override
+  public void shutdown() {
+    // Do nothing.
   }
 }

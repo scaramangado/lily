@@ -1,5 +1,6 @@
 package de.scaramanga.lily.irc.connection;
 
+import de.scaramanga.lily.core.communication.Broadcaster;
 import de.scaramanga.lily.irc.await.AwaitMessage;
 import de.scaramanga.lily.irc.await.AwaitMessageBuilder;
 import de.scaramanga.lily.irc.configuration.IrcProperties;
