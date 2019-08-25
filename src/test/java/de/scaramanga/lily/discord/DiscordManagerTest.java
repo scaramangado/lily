@@ -82,6 +82,19 @@ class DiscordManagerTest {
     assertThatCode(() -> manager.contextStart(null)).doesNotThrowAnyException();
   }
 
+  @Test
+  @SuppressWarnings("squid:S2925")
+    // Verify no change
+  void doesNotConnectWhenDisabled() throws InterruptedException {
+
+    properties.setEnabled(false);
+
+    manager.contextStart(null);
+
+    Thread.sleep(500);
+    Assertions.assertThat(jdaBuildCount.get()).isEqualTo(0);
+  }
+
   private Object loginPerformed(InvocationOnMock invocation) {
 
     jdaBuildCount.incrementAndGet();
