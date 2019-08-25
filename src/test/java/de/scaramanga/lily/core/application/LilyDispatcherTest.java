@@ -141,6 +141,7 @@ class LilyDispatcherTest {
   }
 
   @Test
+  @SuppressWarnings("unchecked")
   void broadcastsToAllRegisteredBroadcasters() {
 
     dispatcher.addBroadcaster(answerBroadcaster, Answer.class);
@@ -159,6 +160,7 @@ class LilyDispatcherTest {
   }
 
   @Test
+  @SuppressWarnings("unchecked")
   void doesNotBroadcastToBroadcastersWithSubclass() {
 
     dispatcher.addBroadcaster(answerBroadcaster, Answer.class);
@@ -176,7 +178,7 @@ class LilyDispatcherTest {
     soft.assertAll();
   }
 
-  private class TestAnswer implements Answer {
+  private static class TestAnswer implements Answer {
 
     @Override
     public String getText() {
