@@ -49,7 +49,7 @@ java {
 }
 
 tasks.withType(Wrapper::class) {
-  gradleVersion = "5.5.1"
+  gradleVersion = "5.6"
 }
 
 fun DependencyHandler.lombok(version: Any) {
