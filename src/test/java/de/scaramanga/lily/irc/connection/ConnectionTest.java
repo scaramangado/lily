@@ -42,7 +42,7 @@ class ConnectionTest {
   private static final String                CRLF           = "\n\r";
   private static final String                CHANNEL        = "channel";
   private static final String                MESSAGE        = "message";
-  private static final List<String>          STRING_LIST    = List.of("a", "b", "c");
+  private static final List<String>          STRING_LIST    = Arrays.asList("a", "b", "c");
   private static final String[]              STRING_LIST_LF = new String[]{ "a" + CRLF, "b" + CRLF, "c" + CRLF };
   private static final String                EXPECTED_REGEX = "test.*";
   private static final String                REGEX_TRIGGER  = "testAbc";
