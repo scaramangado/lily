@@ -4,6 +4,12 @@ pipeline {
 
     stages {
 
+        stage("Prepare") {
+            steps {
+                sh "./gradlew clean"
+            }
+        }
+
         stage("Test") {
             steps {
                 sh "./gradlew test"
