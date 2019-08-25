@@ -8,7 +8,7 @@ import de.scaramanga.lily.core.communication.Command;
 import de.scaramanga.lily.core.communication.CommandInterceptor;
 import de.scaramanga.lily.core.communication.Dispatcher;
 import de.scaramanga.lily.core.communication.MessageInfo;
-import de.scaramanga.lily.core.configuration.LilyConfiguration;
+import de.scaramanga.lily.core.configuration.LilyProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
@@ -30,12 +30,12 @@ import static de.scaramanga.lily.core.communication.CommandInterceptor.Continuat
 class LilyDispatcher implements Dispatcher {
 
   private final ApplicationContext                  ac;
-  private final LilyConfiguration                   properties;
+  private final LilyProperties                      properties;
   private       Map<String, Method>                 commands     = null;
   private       List<CommandInterceptor>            interceptors = new ArrayList<>();
   private       List<Broadcaster<? extends Answer>> broadcasters = new ArrayList<>();
 
-  LilyDispatcher(ApplicationContext ac, LilyConfiguration properties) {
+  LilyDispatcher(ApplicationContext ac, LilyProperties properties) {
 
     this.ac         = ac;
     this.properties = properties;

@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 @Setter
 @Component
 @ConfigurationProperties("lily")
-public class LilyConfiguration {
+public class LilyProperties {
 
   private String commandPrefix = "!";
 }
