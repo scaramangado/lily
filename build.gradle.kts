@@ -13,21 +13,21 @@ repositories {
 
 dependencies {
 
-  api("org.springframework.boot:spring-boot-starter:2.1.2.RELEASE")
-  api("net.dv8tion:JDA:4.0.0_45") {
+  api("org.springframework.boot:spring-boot-starter:2.1.8.RELEASE")
+  api("net.dv8tion:JDA:4.0.0_46") {
     exclude(module = "opus-java")
   }
 
   implementation("org.reflections:reflections:0.9.11")
 
-  lombok("1.18.4")
+  lombok("1.18.8")
 
-  val jUnitVersion = "5.4.2"
+  val jUnitVersion = "5.5.2"
   testImplementation("org.junit.jupiter:junit-jupiter-api:$jUnitVersion")
   testImplementation("org.junit.jupiter:junit-jupiter-params:$jUnitVersion")
   testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$jUnitVersion")
 
-  testImplementation("org.springframework.boot:spring-boot-starter-test:2.1.2.RELEASE") {
+  testImplementation("org.springframework.boot:spring-boot-starter-test:2.1.8.RELEASE") {
     exclude(module = "junit")
     exclude(module = "hamcrest-library")
     exclude(module = "hamcrest-core")
@@ -36,8 +36,8 @@ dependencies {
     exclude(module = "xmlunit-core")
   }
 
-  testImplementation("org.assertj:assertj-core:3.11.1")
-  testImplementation("org.awaitility:awaitility:3.1.6")
+  testImplementation("org.assertj:assertj-core:3.13.2")
+  testImplementation("org.awaitility:awaitility:4.0.1")
 }
 
 tasks.withType(Test::class) {
@@ -60,7 +60,7 @@ publishing {
 }
 
 tasks.withType(Wrapper::class) {
-  gradleVersion = "5.6"
+  gradleVersion = "5.6.2"
 }
 
 fun DependencyHandler.lombok(version: Any) {
