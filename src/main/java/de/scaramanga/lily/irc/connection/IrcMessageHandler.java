@@ -26,7 +26,7 @@ class IrcMessageHandler implements MessageHandler {
       return functionMap;
     }
 
-    final String PRIVMSG_REGEX = ":\\w+!\\w[\\w@.]+ PRIVMSG #\\w+ :.*";
+    final String PRIVMSG_REGEX = ":\\w+!\\w[\\w@.\\-]+ PRIVMSG #\\w+ :.*";
     final String PING_REGEX    = "PING :.*";
 
     functionMap = new HashMap<>();
