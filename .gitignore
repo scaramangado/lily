@@ -130,4 +130,7 @@ gradle-app.setting
 ### Gradle Patch ###
 **/build/
 
-# End of https://www.gitignore.io/api/macos,gradle,intellij
+### Test App ###
+
+/src/main/java/test/**
+/src/main/resources/application.yaml
