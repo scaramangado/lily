@@ -1,5 +1,6 @@
 plugins {
   `java-library`
+  `maven-publish`
 }
 
 group = "de.scaramanga"
@@ -46,6 +47,16 @@ tasks.withType(Test::class) {
 java {
   sourceCompatibility = JavaVersion.VERSION_1_8
   targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+publishing {
+  publications {
+    create<MavenPublication>("Lily") {
+
+      artifactId = "lily"
+      from(components["java"])
+    }
+  }
 }
 
 tasks.withType(Wrapper::class) {
