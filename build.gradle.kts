@@ -7,11 +7,15 @@ version = "1.0-SNAPSHOT"
 
 repositories {
   mavenCentral()
+  jcenter()
 }
 
 dependencies {
 
   api("org.springframework.boot:spring-boot-starter:2.1.2.RELEASE")
+  api("net.dv8tion:JDA:4.0.0_45") {
+    exclude(module = "opus-java")
+  }
 
   implementation("org.reflections:reflections:0.9.11")
 
@@ -45,7 +49,7 @@ java {
 }
 
 tasks.withType(Wrapper::class) {
-  gradleVersion = "5.5.1"
+  gradleVersion = "5.6"
 }
 
 fun DependencyHandler.lombok(version: Any) {

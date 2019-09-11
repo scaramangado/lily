@@ -6,7 +6,7 @@ import de.scaramanga.lily.core.communication.Broadcaster;
 import de.scaramanga.lily.core.communication.Command;
 import de.scaramanga.lily.core.communication.CommandInterceptor;
 import de.scaramanga.lily.core.communication.MessageInfo;
-import de.scaramanga.lily.core.configuration.LilyConfiguration;
+import de.scaramanga.lily.core.configuration.LilyProperties;
 import de.scaramanga.lily.core.testmodules.ValidLilyCommands;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,11 +26,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(SpringExtension.class)
-@SpringBootTest(classes = { LilyConfiguration.class, ValidLilyCommands.class })
+@SpringBootTest(classes = { LilyProperties.class, ValidLilyCommands.class })
 class LilyDispatcherTest {
 
   private final GenericApplicationContext applicationContext;
-  private final LilyConfiguration         properties;
+  private final LilyProperties            properties;
   private       LilyDispatcher            dispatcher;
 
   private static final MessageInfo testMessageInfo = new MessageInfo() { };
@@ -45,7 +45,7 @@ class LilyDispatcherTest {
   private List<TestAnswer>        testAnswerBroadcasts = new ArrayList<>();
 
   @Autowired
-  LilyDispatcherTest(GenericApplicationContext applicationContext, LilyConfiguration properties) {
+  LilyDispatcherTest(GenericApplicationContext applicationContext, LilyProperties properties) {
 
     this.applicationContext = applicationContext;
     this.properties         = properties;
@@ -141,6 +141,7 @@ class LilyDispatcherTest {
   }
 
   @Test
+  @SuppressWarnings("unchecked")
   void broadcastsToAllRegisteredBroadcasters() {
 
     dispatcher.addBroadcaster(answerBroadcaster, Answer.class);
@@ -159,6 +160,7 @@ class LilyDispatcherTest {
   }
 
   @Test
+  @SuppressWarnings("unchecked")
   void doesNotBroadcastToBroadcastersWithSubclass() {
 
     dispatcher.addBroadcaster(answerBroadcaster, Answer.class);
@@ -176,7 +178,7 @@ class LilyDispatcherTest {
     soft.assertAll();
   }
 
-  private class TestAnswer implements Answer {
+  private static class TestAnswer implements Answer {
 
     @Override
     public String getText() {
