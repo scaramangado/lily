@@ -8,6 +8,7 @@ import de.scaramanga.lily.irc.connection.actions.ConnectionAction;
 import de.scaramanga.lily.irc.connection.actions.JoinActionData;
 import de.scaramanga.lily.irc.connection.actions.LeaveActionData;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
@@ -20,6 +21,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import static de.scaramanga.lily.irc.connection.actions.ConnectionAction.ConnectionActionType.*;
 
 @Component
+@ConditionalOnProperty(value = "lily.irc.enabled")
 @Slf4j
 public class ConnectionManager implements Broadcaster<IrcAnswer> {
 
