@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "de.scaramanga"
-version = "0.1.0"
+version = "0.1.1"
 
 repositories {
   mavenCentral()
@@ -49,6 +49,17 @@ java {
   targetCompatibility = JavaVersion.VERSION_1_8
 }
 
+sourceSets {
+  main {
+    resources{
+      include {
+        listOf("")
+          .contains(it.name)
+      }
+    }
+  }
+}
+
 publishing {
   publications {
     create<MavenPublication>("Lily") {
@@ -57,10 +68,6 @@ publishing {
       from(components["java"])
     }
   }
-}
-
-tasks.withType(Wrapper::class) {
-  gradleVersion = "5.6.2"
 }
 
 fun DependencyHandler.lombok(version: Any) {
@@ -72,4 +79,8 @@ fun DependencyHandler.lombok(version: Any) {
 
   annotationProcessor(dependencyNotation)
   testAnnotationProcessor(dependencyNotation)
+}
+
+tasks.withType(Wrapper::class) {
+  gradleVersion = "5.6.2"
 }

@@ -5,12 +5,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.env.Environment;
 
-import java.io.IOException;
 import java.io.PrintStream;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 
 /**
  * Class used to bootstrap a Spring Boot based Lily application.
@@ -44,19 +39,19 @@ public class Lily {
   @SuppressWarnings({ "squid:S1174", "unused" }) // Used as lambda.
   private static void printBanner(Environment environment, Class<?> sourceClass, PrintStream out) {
 
-    try {
-      final URL bannerUrl = Lily.class.getClassLoader().getResource("default_banner.txt");
+    final String defaultBanner =
+        " ▄            ▄▄▄▄▄▄▄▄▄▄▄  ▄       ▄         ▄\n" +
+        "▐░▌          ▐░░░░░░░░░░░▌▐░▌     ▐░▌       ▐░▌\n" +
+        "▐░▌           ▀▀▀▀█░█▀▀▀▀ ▐░▌     ▐░▌       ▐░▌\n" +
+        "▐░▌               ▐░▌     ▐░▌     ▐░▌       ▐░▌\n" +
+        "▐░▌               ▐░▌     ▐░▌     ▐░█▄▄▄▄▄▄▄█░▌\n" +
+        "▐░▌               ▐░▌     ▐░▌     ▐░░░░░░░░░░░▌\n" +
+        "▐░▌               ▐░▌     ▐░▌      ▀▀▀▀█░█▀▀▀▀\n" +
+        "▐░▌               ▐░▌     ▐░▌          ▐░▌\n" +
+        "▐░█▄▄▄▄▄▄▄▄▄  ▄▄▄▄█░█▄▄▄▄ ▐░█▄▄▄▄▄▄▄▄▄ ▐░▌\n" +
+        "▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌▐░▌\n" +
+        " ▀▀▀▀▀▀▀▀▀▀▀  ▀▀▀▀▀▀▀▀▀▀▀  ▀▀▀▀▀▀▀▀▀▀▀  ▀\n";
 
-      if (bannerUrl == null) {
-        throw new NullPointerException("Cannot load resource.");
-      }
-
-      final String banner = new String(Files
-                                           .readAllBytes(Paths.get(bannerUrl.toURI())));
-
-      out.println(banner);
-    } catch (URISyntaxException | IOException e) {
-      LOGGER.error("Could not load default banner from text file.", e);
-    }
+    out.println(defaultBanner);
   }
 }
