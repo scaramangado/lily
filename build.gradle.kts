@@ -72,10 +72,14 @@ publishing {
 }
 
 sonarqube {
+
+  val sonarLogin: String by project
+
   properties {
     property("sonar.projectKey", "scaramangado_lily")
     property("sonar.organization", "scaramangado")
     property("sonar.host.url", "https://sonarcloud.io")
+    property("sonar.login", sonarLogin)
   }
 }
 
