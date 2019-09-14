@@ -1,6 +1,7 @@
 plugins {
   `java-library`
   `maven-publish`
+  id("org.sonarqube") version "2.7.1"
 }
 
 group = "de.scaramanga"
@@ -67,6 +68,14 @@ publishing {
       artifactId = "lily"
       from(components["java"])
     }
+  }
+}
+
+sonarqube {
+  properties {
+    property("sonar.projectKey", "scaramangado_lily")
+    property("sonar.organization", "scaramangado")
+    property("sonar.host.url", "https://sonarcloud.io")
   }
 }
 
