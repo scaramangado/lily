@@ -195,6 +195,7 @@ class ConnectionTest {
   }
 
   @Test
+  @SuppressWarnings("squid:S2699") // Awaitility
   void awaitsMessageAndCallsCallback() {
 
     AtomicBoolean callbackCalled = new AtomicBoolean(false);

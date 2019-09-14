@@ -17,6 +17,7 @@ public class IrcConfiguration {
     return this::getSocket;
   }
 
+  @SuppressWarnings("squid:S4818") // Needed for IRC
   private Socket getSocket(String host, Integer port) {
 
     Socket socket;
