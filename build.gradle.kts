@@ -2,6 +2,7 @@ plugins {
   `java-library`
   `maven-publish`
   id("org.sonarqube") version "2.7.1"
+  jacoco
 }
 
 group = "de.scaramanga"
@@ -43,6 +44,7 @@ dependencies {
 
 tasks.withType(Test::class) {
   useJUnitPlatform()
+  finalizedBy("jacocoTestReport")
 }
 
 java {
@@ -52,10 +54,10 @@ java {
 
 sourceSets {
   main {
-    resources{
+    resources {
       include {
         listOf("")
-          .contains(it.name)
+            .contains(it.name)
       }
     }
   }
