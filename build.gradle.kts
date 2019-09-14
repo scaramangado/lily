@@ -44,6 +44,11 @@ dependencies {
 
 tasks.withType(Test::class) {
   useJUnitPlatform()
+
+  testLogging {
+    events("passed", "skipped", "failed")
+  }
+
   finalizedBy("jacocoTestReport")
 }
 
