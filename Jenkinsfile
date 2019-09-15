@@ -14,6 +14,8 @@ pipeline {
             steps {
                 sh "./gradlew test"
             }
+
+            step([$class: 'JUnitResultArchiver', testResults: 'build/test-results/test/*.xml' ])
         }
 
         stage("SonarQube") {
