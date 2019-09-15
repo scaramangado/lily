@@ -134,3 +134,6 @@ gradle-app.setting
 
 /src/main/java/test/**
 /src/main/resources/application.yaml
+
+### Lily ###
+gradle.properties
