@@ -17,11 +17,13 @@ class CommandLineInterface {
   private final LilyScanner scanner;
   private final PrintStream printStream;
 
+  @SuppressWarnings("squid:S106") // CLI
   CommandLineInterface(Dispatcher dispatcher) {
 
     this(dispatcher, LilyScanner::new, () -> System.out);
   }
 
+  @SuppressWarnings("squid:S4829") // Command line mode only for debug purposes
   CommandLineInterface(Dispatcher dispatcher, Function<InputStream, LilyScanner> scannerSupplier,
                        Supplier<PrintStream> printStreamSupplier) {
 

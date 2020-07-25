@@ -13,6 +13,13 @@ pipeline {
         stage("Test") {
             steps {
                 sh "./gradlew test"
+                step([$class: 'JUnitResultArchiver', testResults: 'build/test-results/test/*.xml' ])
+            }
+        }
+
+        stage("SonarQube") {
+            steps {
+                sh "./gradlew sonarqube"
             }
         }
 
