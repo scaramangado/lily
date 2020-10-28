@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "de.scaramanga"
-version = "0.1.2"
+version = "0.1.3"
 
 repositories {
   mavenCentral()
@@ -15,21 +15,21 @@ repositories {
 
 dependencies {
 
-  api("org.springframework.boot:spring-boot-starter:2.3.1.RELEASE")
-  api("net.dv8tion:JDA:4.2.0_180") {
+  api("org.springframework.boot:spring-boot-starter:2.3.4.RELEASE")
+  api("net.dv8tion:JDA:4.2.0_212") {
     exclude(module = "opus-java")
   }
 
-  implementation("org.reflections:reflections:0.9.11")
+  implementation("org.reflections:reflections:0.9.11") // Breaking change in 0.9.12
 
-  lombok("1.18.12")
+  lombok("1.18.16")
 
-  val jUnitVersion = "5.6.2"
+  val jUnitVersion = "5.7.0"
   testImplementation("org.junit.jupiter:junit-jupiter-api:$jUnitVersion")
   testImplementation("org.junit.jupiter:junit-jupiter-params:$jUnitVersion")
   testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$jUnitVersion")
 
-  testImplementation("org.springframework.boot:spring-boot-starter-test:2.3.1.RELEASE") {
+  testImplementation("org.springframework.boot:spring-boot-starter-test:2.3.4.RELEASE") {
     exclude(module = "junit")
     exclude(module = "hamcrest-library")
     exclude(module = "hamcrest-core")
