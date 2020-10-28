@@ -9,6 +9,6 @@ public interface JdaBuilderFactory {
 
   static JdaBuilderFactory standardFactory() {
 
-    return JDABuilder::new;
+    return JDABuilder::createLight;
   }
 }

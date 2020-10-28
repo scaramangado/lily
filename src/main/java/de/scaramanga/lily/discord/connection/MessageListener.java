@@ -25,8 +25,11 @@ public class MessageListener implements DiscordEventListener<MessageReceivedEven
     if (event.isFromType(ChannelType.TEXT) &&
         event.getAuthor() != event.getGuild().getSelfMember().getUser()) {
 
+      final String messageContent = event.getMessage().getContentDisplay();
+
+      LOGGER.debug("Received discord message: " + messageContent);
       Optional<Answer> maybeAnswer = dispatcher
-          .dispatch(event.getMessage().getContentDisplay(), DiscordMessageInfo.withMessage(event.getMessage()));
+          .dispatch(messageContent, DiscordMessageInfo.withMessage(event.getMessage()));
 
       maybeAnswer.ifPresent(a -> sendAnswer(a, event.getMessage().getChannel()));
     }
