@@ -19,7 +19,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @Component
 public class DiscordManager {
 
-  private       AtomicBoolean                              connected = new AtomicBoolean(false);
+  private final AtomicBoolean                              connected = new AtomicBoolean(false);
   private final DiscordProperties                          properties;
   private final JdaBuilderFactory                          jdaBuilderFactory;
   private final DiscordEventListener<MessageReceivedEvent> messageReceivedListener;
