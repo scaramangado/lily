@@ -13,7 +13,7 @@ pipeline {
         stage("Test") {
             steps {
                 sh "./gradlew test"
-                step([$class: 'JUnitResultArchiver', testResults: 'build/test-results/test/*.xml' ])
+                step([$class: 'JUnitResultArchiver', testResults: 'build/test-results/test/*.xml'])
             }
         }
 
@@ -26,6 +26,21 @@ pipeline {
         stage("Build") {
             steps {
                 sh "./gradlew build -x test"
+            }
+        }
+
+        stage("Publish") {
+
+            when {
+                branch "master"
+            }
+
+            steps {
+                withCredentials([usernamePassword(credentialsId: "lily_github_packages",
+                                                  usernameVariable: 'user',
+                                                  passwordVariable: 'token')]) {
+                    sh "./gradlew publish -PgithubPackagesUser=$user -PgithubPackagesToken=$token"
+                }
             }
         }
     }

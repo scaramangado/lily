@@ -5,8 +5,8 @@ plugins {
   jacoco
 }
 
-group = "de.scaramanga"
-version = "0.1.3"
+group = "de.scaramangado"
+version = "0.2.0"
 
 repositories {
   mavenCentral()
@@ -70,12 +70,33 @@ sourceSets {
 }
 
 publishing {
+
+  val githubPackagesUser: String by project
+  val githubPackagesToken: String by project
+
+  repositories {
+    maven {
+      name = "GitHubPackages"
+      url = uri("https://maven.pkg.github.com/scaramangado/lily")
+      credentials {
+        username = githubPackagesUser
+        password = githubPackagesToken
+      }
+    }
+  }
+
   publications {
     create<MavenPublication>("Lily") {
 
       artifactId = "lily"
       from(components["java"])
     }
+  }
+}
+
+tasks.jacocoTestReport {
+  reports {
+    xml.isEnabled = true
   }
 }
 
@@ -88,6 +109,7 @@ sonarqube {
     property("sonar.organization", "scaramangado")
     property("sonar.host.url", "https://sonarcloud.io")
     property("sonar.login", sonarLogin)
+    property("sonar.coverage.jacoco.xmlReportPaths", "$buildDir/reports/jacoco/test/jacocoTestReport.xml")
   }
 }
 
