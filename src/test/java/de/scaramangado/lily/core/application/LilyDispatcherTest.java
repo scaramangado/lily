@@ -111,7 +111,7 @@ class LilyDispatcherTest {
 
     Optional<Answer> answer = dispatcher.dispatch(INVALID_COMMAND, testMessageInfo);
 
-    assertThat(answer.isPresent()).as("Answer for missing command.").isFalse();
+    assertThat(answer).as("Answer for missing command.").isEmpty();
   }
 
   @Test
@@ -135,9 +135,9 @@ class LilyDispatcherTest {
 
     verify(stopInterceptor).process(any(Command.class));
 
-    assertThat(answer.isPresent())
+    assertThat(answer)
         .withFailMessage("Answer not empty.")
-        .isFalse();
+        .isEmpty();
   }
 
   @Test

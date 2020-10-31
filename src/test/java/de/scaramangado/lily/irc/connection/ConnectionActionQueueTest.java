@@ -2,7 +2,6 @@ package de.scaramangado.lily.irc.connection;
 
 import de.scaramangado.lily.irc.connection.actions.ConnectionAction;
 import org.assertj.core.api.SoftAssertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
@@ -16,18 +15,12 @@ import java.util.UUID;
 import java.util.function.Consumer;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.*;
 
 class ConnectionActionQueueTest {
 
-  private ConnectionActionQueue               actionQueue;
-  private Map<String, List<ConnectionAction>> consumerMap = new HashMap<>();
-
-  @BeforeEach
-  void setup() {
-
-    actionQueue = new ConnectionActionQueue();
-  }
+  private final ConnectionActionQueue               actionQueue = new ConnectionActionQueue();
+  private final Map<String, List<ConnectionAction>> consumerMap = new HashMap<>();
 
   @ParameterizedTest
   @EnumSource(ConnectionAction.ConnectionActionType.class)
@@ -38,7 +31,7 @@ class ConnectionActionQueueTest {
     actionQueue.addAction(expectedAction);
     ConnectionAction actualAction = actionQueue.nextAction();
 
-    assertThat(actualAction).isEqualTo(actualAction);
+    assertThat(actualAction).isEqualTo(expectedAction);
   }
 
   @Test
@@ -92,14 +85,14 @@ class ConnectionActionQueueTest {
   @Test
   void throwsWhenPollingWhileEmpty() {
 
-    assertThatThrownBy(() -> actionQueue.nextAction())
+    assertThatThrownBy(actionQueue::nextAction)
         .isExactlyInstanceOf(IndexOutOfBoundsException.class);
   }
 
   @Test
   void throwsWhenPeekingWhileEmpty() {
 
-    assertThatThrownBy(() -> actionQueue.showNextAction())
+    assertThatThrownBy(actionQueue::showNextAction)
         .isExactlyInstanceOf(IndexOutOfBoundsException.class);
   }
 

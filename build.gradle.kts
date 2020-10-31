@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "de.scaramangado"
-version = "0.1.3"
+version = "0.2.0"
 
 repositories {
   mavenCentral()
@@ -94,6 +94,12 @@ publishing {
   }
 }
 
+tasks.jacocoTestReport {
+  reports {
+    xml.isEnabled = true
+  }
+}
+
 sonarqube {
 
   val sonarLogin: String by project
@@ -103,6 +109,7 @@ sonarqube {
     property("sonar.organization", "scaramangado")
     property("sonar.host.url", "https://sonarcloud.io")
     property("sonar.login", sonarLogin)
+    property("sonar.coverage.jacoco.xmlReportPaths", "$buildDir/reports/jacoco/test/jacocoTestReport.xml")
   }
 }
 

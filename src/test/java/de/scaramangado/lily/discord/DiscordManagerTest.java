@@ -21,19 +21,19 @@ import static org.mockito.Mockito.*;
 
 class DiscordManagerTest {
 
-  private DiscordManager                             manager;
-  private DiscordProperties                          properties              = new DiscordProperties();
-  private JDABuilder                                 jdaBuilderMock          = mock(JDABuilder.class, RETURNS_SELF);
-  private AtomicInteger                              jdaBuildCount           = new AtomicInteger(0);
-  private DiscordEventListener<MessageReceivedEvent> messageReceivedListener = event -> {};
+  private final DiscordProperties                          properties      = new DiscordProperties();
+  private final JDABuilder                                 jdaBuilderMock  = mock(JDABuilder.class, RETURNS_SELF);
+  private final AtomicInteger                              jdaBuildCount   = new AtomicInteger(0);
+  private final DiscordEventListener<MessageReceivedEvent> messageReceived = event -> {};
+
+  private final DiscordManager manager
+      = new DiscordManager(properties, token -> jdaBuilderMock, messageReceived);
 
   @BeforeEach
   void setup() throws LoginException {
 
     doAnswer(this::loginPerformed).when(jdaBuilderMock).build();
-
     properties.setEnabled(true);
-    manager = new DiscordManager(properties, token -> jdaBuilderMock, messageReceivedListener);
   }
 
   @Test
@@ -71,7 +71,7 @@ class DiscordManagerTest {
     ArgumentCaptor<Object> captor = ArgumentCaptor.forClass(Object.class);
     verify(jdaBuilderMock).addEventListeners(captor.capture());
 
-    assertThat(captor.getAllValues()).contains(messageReceivedListener);
+    assertThat(captor.getAllValues()).contains(messageReceived);
   }
 
   @Test
@@ -92,7 +92,7 @@ class DiscordManagerTest {
     manager.contextStart(null);
 
     Thread.sleep(500);
-    Assertions.assertThat(jdaBuildCount.get()).isEqualTo(0);
+    Assertions.assertThat(jdaBuildCount.get()).isZero();
   }
 
   private Object loginPerformed(InvocationOnMock invocation) {
