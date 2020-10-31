@@ -70,6 +70,21 @@ sourceSets {
 }
 
 publishing {
+
+  val githubPackagesUser: String by project
+  val githubPackagesToken: String by project
+
+  repositories {
+    maven {
+      name = "GitHubPackages"
+      url = uri("https://maven.pkg.github.com/scaramangado/lily")
+      credentials {
+        username = githubPackagesUser
+        password = githubPackagesToken
+      }
+    }
+  }
+
   publications {
     create<MavenPublication>("Lily") {
 
