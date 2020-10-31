@@ -32,7 +32,7 @@ pipeline {
         stage("Publish") {
 
             when {
-                branch "feature/package"
+                branch "master"
             }
 
             steps {
