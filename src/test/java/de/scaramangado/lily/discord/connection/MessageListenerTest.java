@@ -22,13 +22,13 @@ import static org.mockito.Mockito.*;
 
 class MessageListenerTest {
 
-  private MessageListener      listener;
-  private Dispatcher           dispatcherMock = mock(Dispatcher.class);
-  private MessageReceivedEvent eventMock      = mock(MessageReceivedEvent.class);
-  private Message              messageMock    = mock(Message.class);
-  private User                 botUser        = mock(User.class);
-  private User                 humanUser      = mock(User.class);
-  private MessageChannel       channelMock    = mock(MessageChannel.class);
+  private       MessageListener      listener;
+  private final Dispatcher           dispatcherMock = mock(Dispatcher.class);
+  private final MessageReceivedEvent eventMock      = mock(MessageReceivedEvent.class);
+  private final Message              messageMock    = mock(Message.class);
+  private final User                 botUser        = mock(User.class);
+  private final User                 humanUser      = mock(User.class);
+  private final MessageChannel       channelMock    = mock(MessageChannel.class);
 
   private static final String MESSAGE = "TEST_MESSAGE";
   private static final String ANSWER  = "TEST_ANSWER";
@@ -110,9 +110,53 @@ class MessageListenerTest {
     verify(messageAction).queue();
   }
 
+  @Test
+  void dispatchesPrivateMessages() {
+
+    givenMessageSentBy(humanUser);
+    givenPrivateMessage();
+
+    listener.onEvent(eventMock);
+
+    ArgumentCaptor<MessageInfo> messageInfoCaptor = ArgumentCaptor.forClass(MessageInfo.class);
+    verify(dispatcherMock).dispatch(eq(MESSAGE), messageInfoCaptor.capture());
+
+    MessageInfo messageInfo = messageInfoCaptor.getValue();
+
+    assertThat(messageInfo).isInstanceOf(DiscordMessageInfo.class);
+
+    DiscordMessageInfo discordMessageInfo = (DiscordMessageInfo) messageInfo;
+    assertThat(discordMessageInfo.getMessage()).isEqualTo(messageMock);
+  }
+
+  @Test
+  void doesNothingWhenPrivateMessageFromBot() {
+
+    givenMessageSentByBot();
+    givenPrivateMessage();
+
+    listener.onEvent(eventMock);
+
+    verifyNoMoreInteractions(channelMock, messageMock);
+  }
+
   private void givenMessageSentBy(User user) {
 
     when(messageMock.getAuthor()).thenReturn(user);
     when(eventMock.getAuthor()).thenReturn(user);
+  }
+
+  private void givenMessageSentByBot() {
+
+    final User bot = mock(User.class);
+    when(bot.isBot()).thenReturn(true);
+
+    when(messageMock.getAuthor()).thenReturn(bot);
+    when(eventMock.getAuthor()).thenReturn(bot);
+  }
+
+  private void givenPrivateMessage() {
+    when(eventMock.isFromType(ChannelType.TEXT)).thenReturn(false);
+    when(eventMock.isFromType(ChannelType.PRIVATE)).thenReturn(true);
   }
 }

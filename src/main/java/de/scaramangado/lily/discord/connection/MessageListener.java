@@ -1,6 +1,7 @@
 package de.scaramangado.lily.discord.connection;
 
 import de.scaramangado.lily.core.communication.Answer;
+import de.scaramangado.lily.core.communication.AnswerInfo;
 import de.scaramangado.lily.core.communication.Dispatcher;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.entities.ChannelType;
@@ -22,8 +23,7 @@ public class MessageListener implements DiscordEventListener<MessageReceivedEven
   @Override
   public void handleEvent(MessageReceivedEvent event) {
 
-    if (event.isFromType(ChannelType.TEXT) &&
-        event.getAuthor() != event.getGuild().getSelfMember().getUser()) {
+    if (isTextChannelMessage(event) || isPrivateMessage(event)) {
 
       final String messageContent = event.getMessage().getContentDisplay();
 
@@ -33,6 +33,18 @@ public class MessageListener implements DiscordEventListener<MessageReceivedEven
 
       maybeAnswer.ifPresent(a -> sendAnswer(a, event.getMessage().getChannel()));
     }
+  }
+
+  private boolean isTextChannelMessage(MessageReceivedEvent event) {
+
+    return
+        event.isFromType(ChannelType.TEXT) && event.getAuthor() != event.getGuild().getSelfMember().getUser();
+  }
+
+  private boolean isPrivateMessage(MessageReceivedEvent event) {
+
+    return
+        event.isFromType(ChannelType.PRIVATE) && !event.getAuthor().isBot();
   }
 
   private void sendAnswer(Answer answer, MessageChannel channel) {
