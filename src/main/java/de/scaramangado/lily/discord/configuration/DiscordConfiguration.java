@@ -11,11 +11,14 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class DiscordConfiguration {
 
-  private final Dispatcher dispatcher;
+  private final Dispatcher        dispatcher;
+  private final DiscordProperties properties;
 
-  public DiscordConfiguration(Dispatcher dispatcher) {
+  public DiscordConfiguration(Dispatcher dispatcher,
+                              DiscordProperties properties) {
 
     this.dispatcher = dispatcher;
+    this.properties = properties;
   }
 
   @Bean
@@ -27,6 +30,6 @@ public class DiscordConfiguration {
   @Bean
   public DiscordEventListener<MessageReceivedEvent> messageListener() {
 
-    return new MessageListener(dispatcher);
+    return new MessageListener(dispatcher, properties);
   }
 }

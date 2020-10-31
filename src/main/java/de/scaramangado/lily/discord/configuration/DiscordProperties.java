@@ -12,5 +12,6 @@ import org.springframework.stereotype.Component;
 public class DiscordProperties {
 
   private boolean enabled = false;
+  private boolean enableDirectMessages = false;
   private String  token;
 }

@@ -1,8 +1,8 @@
 package de.scaramangado.lily.discord.connection;
 
 import de.scaramangado.lily.core.communication.Answer;
-import de.scaramangado.lily.core.communication.AnswerInfo;
 import de.scaramangado.lily.core.communication.Dispatcher;
+import de.scaramangado.lily.discord.configuration.DiscordProperties;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.MessageChannel;
@@ -13,11 +13,13 @@ import java.util.Optional;
 @Slf4j
 public class MessageListener implements DiscordEventListener<MessageReceivedEvent> {
 
-  private final Dispatcher dispatcher;
+  private final Dispatcher        dispatcher;
+  private final DiscordProperties properties;
 
-  public MessageListener(Dispatcher dispatcher) {
+  public MessageListener(Dispatcher dispatcher, DiscordProperties properties) {
 
     this.dispatcher = dispatcher;
+    this.properties = properties;
   }
 
   @Override
@@ -44,7 +46,7 @@ public class MessageListener implements DiscordEventListener<MessageReceivedEven
   private boolean isPrivateMessage(MessageReceivedEvent event) {
 
     return
-        event.isFromType(ChannelType.PRIVATE) && !event.getAuthor().isBot();
+        properties.isEnableDirectMessages() && event.isFromType(ChannelType.PRIVATE) && !event.getAuthor().isBot();
   }
 
   private void sendAnswer(Answer answer, MessageChannel channel) {

@@ -3,6 +3,7 @@ package de.scaramangado.lily.discord.connection;
 import de.scaramangado.lily.core.communication.Answer;
 import de.scaramangado.lily.core.communication.Dispatcher;
 import de.scaramangado.lily.core.communication.MessageInfo;
+import de.scaramangado.lily.discord.configuration.DiscordProperties;
 import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
@@ -29,6 +30,7 @@ class MessageListenerTest {
   private final User                 botUser        = mock(User.class);
   private final User                 humanUser      = mock(User.class);
   private final MessageChannel       channelMock    = mock(MessageChannel.class);
+  private final DiscordProperties    properties     = new DiscordProperties();
 
   private static final String MESSAGE = "TEST_MESSAGE";
   private static final String ANSWER  = "TEST_ANSWER";
@@ -51,7 +53,9 @@ class MessageListenerTest {
     when(guildMock.getSelfMember()).thenReturn(selfMember);
     when(selfMember.getUser()).thenReturn(botUser);
 
-    listener = new MessageListener(dispatcherMock);
+    properties.setEnableDirectMessages(true);
+
+    listener = new MessageListener(dispatcherMock, properties);
   }
 
   @Test
@@ -140,6 +144,19 @@ class MessageListenerTest {
     verifyNoMoreInteractions(channelMock, messageMock);
   }
 
+  @Test
+  void doesNothingWhenPrivateMessagesDisabled() {
+
+    givenMessageSentBy(humanUser);
+    givenPrivateMessage();
+
+    properties.setEnableDirectMessages(false);
+
+    listener.onEvent(eventMock);
+
+    verifyNoMoreInteractions(channelMock, messageMock);
+  }
+
   private void givenMessageSentBy(User user) {
 
     when(messageMock.getAuthor()).thenReturn(user);
@@ -156,6 +173,7 @@ class MessageListenerTest {
   }
 
   private void givenPrivateMessage() {
+
     when(eventMock.isFromType(ChannelType.TEXT)).thenReturn(false);
     when(eventMock.isFromType(ChannelType.PRIVATE)).thenReturn(true);
   }
