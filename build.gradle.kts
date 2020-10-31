@@ -5,7 +5,7 @@ plugins {
   jacoco
 }
 
-group = "de.scaramanga"
+group = "de.scaramangado"
 version = "0.1.3"
 
 repositories {
