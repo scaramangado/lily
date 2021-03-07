@@ -1,0 +1,48 @@
+name: Build Lily
+
+on:
+  - push
+  - pull_request
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Prepare
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Java Setup
+        uses: actions/setup-java@v1
+        with:
+          java-version: 11
+      - name: Test
+        uses: burrunan/gradle-cache-action@v1
+        with:
+          arguments: test
+          gradle-version: wrapper
+      - name: SonarQube
+        uses: burrunan/gradle-cache-action@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          arguments: sonarqube -x test
+          gradle-version: wrapper
+          properties: |
+            sonarUsername=${{ secrets.SONAR_USER }}
+            sonarPassword=${{ secrets.SONAR_TOKEN }}
+      - name: Build
+        uses: burrunan/gradle-cache-action@v1
+        with:
+          arguments: build -x test
+          gradle-version: wrapper
+      - name: Publish
+        if: ${{ github.ref == 'refs/heads/master' }}
+        uses: burrunan/gradle-cache-action@v1
+        with:
+          arguments: publish
+          gradle-version: wrapper
+          properties: |
+            githubPackagesUser=${{ secrets.PACKAGE_USER }}
+            githubPackagesToken=${{ secrets.PACKAGE_PWD }}
+
