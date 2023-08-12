@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "de.scaramangado"
-version = "0.2.2"
+version = "0.2.3-SNAPSHOT"
 
 repositories {
   mavenCentral()
