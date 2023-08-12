@@ -44,6 +44,6 @@ class CommandLineControllerTest {
 
     controller.onApplicationEvent(null);
 
-    verifyZeroInteractions(applicationContextMock, commandLineInterfaceMock);
+    verifyNoInteractions(applicationContextMock, commandLineInterfaceMock);
   }
 }

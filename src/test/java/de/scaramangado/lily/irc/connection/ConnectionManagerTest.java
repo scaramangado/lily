@@ -17,7 +17,7 @@ import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
 import static de.scaramangado.lily.irc.connection.actions.ConnectionAction.ConnectionActionType.*;
-import static org.awaitility.Awaitility.*;
+import static org.awaitility.Awaitility.await;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(SpringExtension.class)
@@ -25,14 +25,14 @@ import static org.mockito.Mockito.*;
 class ConnectionManagerTest {
 
   private              ConnectionManager     manager;
-  private              MessageHandler        messageHandlerMock     = mock(MessageHandler.class);
-  private              RootMessageHandler    rootMessageHandlerMock = mock(RootMessageHandler.class);
-  private              SocketFactory         socketFactoryMock      = mock(SocketFactory.class);
+  private final        MessageHandler        messageHandlerMock     = mock(MessageHandler.class);
+  private final        RootMessageHandler    rootMessageHandlerMock = mock(RootMessageHandler.class);
+  private final        SocketFactory         socketFactoryMock      = mock(SocketFactory.class);
   private              ConnectionActionQueue actionQueue;
   private              IrcProperties         properties;
-  private              Connection connectionMock = mock(Connection.class);
-  private              Dispatcher dispatcherMock = mock(Dispatcher.class);
-  private static final String     CHANNEL        = "channel";
+  private final        Connection            connectionMock         = mock(Connection.class);
+  private final        Dispatcher            dispatcherMock         = mock(Dispatcher.class);
+  private static final String                CHANNEL                = "channel";
   private static final String                MESSAGE                = "message";
 
   @BeforeEach
@@ -79,7 +79,7 @@ class ConnectionManagerTest {
     properties.setEnabled(false);
     manager.contextStart(null);
 
-    verifyZeroInteractions(connectionMock);
+    verifyNoInteractions(connectionMock);
   }
 
   @Test

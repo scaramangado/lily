@@ -19,9 +19,9 @@ import static org.mockito.Mockito.*;
 class StandardPingHandlerTest {
 
   private StandardPingHandler pingHandler;
-  private Reconnectable reconnectableMock;
-  private IrcProperties properties;
-  private LocalDateTime testStart = LocalDateTime.now();
+  private Reconnectable       reconnectableMock;
+  private IrcProperties       properties;
+  private LocalDateTime       testStart = LocalDateTime.now();
   private LocalDateTime       now;
 
   @BeforeEach
@@ -47,7 +47,7 @@ class StandardPingHandlerTest {
     properties.setReconnectStrategy(NO_RECONNECT);
     furtherMessagesAfterSeconds(CheckedMessages.checked(300, false, false));
 
-    verifyZeroInteractions(reconnectableMock);
+    verifyNoInteractions(reconnectableMock);
   }
 
   @Test
@@ -57,7 +57,7 @@ class StandardPingHandlerTest {
     furtherMessagesAfterSeconds(CheckedMessages.checked(5, true, false),
                                 CheckedMessages.checked(14, false, false));
 
-    verifyZeroInteractions(reconnectableMock);
+    verifyNoInteractions(reconnectableMock);
   }
 
   @Test

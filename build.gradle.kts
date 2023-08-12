@@ -10,26 +10,28 @@ version = "0.2.1"
 
 repositories {
   mavenCentral()
-  jcenter()
+  maven("dv8tion") {
+    url = uri("https://m2.dv8tion.net/releases")
+  }
 }
 
 dependencies {
 
-  api("org.springframework.boot:spring-boot-starter:2.3.4.RELEASE")
-  api("net.dv8tion:JDA:4.2.0_212") {
+  api("org.springframework.boot:spring-boot-starter:2.7.14")
+  api("net.dv8tion:JDA:4.4.1_353") {
     exclude(module = "opus-java")
   }
 
   implementation("org.reflections:reflections:0.9.11") // Breaking change in 0.9.12
 
-  lombok("1.18.16")
+  lombok("1.18.28")
 
-  val jUnitVersion = "5.7.0"
+  val jUnitVersion = "5.10.0"
   testImplementation("org.junit.jupiter:junit-jupiter-api:$jUnitVersion")
   testImplementation("org.junit.jupiter:junit-jupiter-params:$jUnitVersion")
   testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$jUnitVersion")
 
-  testImplementation("org.springframework.boot:spring-boot-starter-test:2.3.4.RELEASE") {
+  testImplementation("org.springframework.boot:spring-boot-starter-test:2.7.14") {
     exclude(module = "junit")
     exclude(module = "hamcrest-library")
     exclude(module = "hamcrest-core")
@@ -39,8 +41,8 @@ dependencies {
     exclude(group = "org.junit.vintage")
   }
 
-  testImplementation("org.assertj:assertj-core:3.16.1")
-  testImplementation("org.awaitility:awaitility:4.0.3")
+  testImplementation("org.assertj:assertj-core:3.24.2")
+  testImplementation("org.awaitility:awaitility:4.2.0")
 }
 
 tasks.withType(Test::class) {
@@ -63,7 +65,7 @@ sourceSets {
     resources {
       include {
         listOf("")
-            .contains(it.name)
+          .contains(it.name)
       }
     }
   }
@@ -105,7 +107,7 @@ sonarqube {
   val sonarUsername: String by project
   val sonarPassword: String by project
 
-	properties {
+  properties {
     property("sonar.projectKey", "scaramangado_lily")
     property("sonar.organization", sonarUsername)
     property("sonar.host.url", "https://sonarcloud.io")

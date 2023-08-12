@@ -62,6 +62,6 @@ class CommandLineInterfaceTest {
 
     commandLineInterface.run(false);
 
-    verifyZeroInteractions(printStreamMock);
+    verifyNoInteractions(printStreamMock);
   }
 }
