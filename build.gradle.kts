@@ -20,7 +20,7 @@ dependencies {
     exclude(module = "opus-java")
   }
 
-  implementation("org.reflections:reflections:0.9.11") // Breaking change in 0.9.12
+  implementation("org.reflections:reflections:0.10.2") // Breaking change in 0.9.12
 
   lombok("1.18.28")
 
