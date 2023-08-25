@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "de.scaramangado"
-version = "0.3.0-SNAPSHOT"
+version = "0.3.0"
 
 repositories {
   mavenCentral()
