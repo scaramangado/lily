@@ -6,17 +6,20 @@ import de.scaramangado.lily.core.communication.Answer;
 import de.scaramangado.lily.core.communication.Command;
 import de.scaramangado.lily.core.exceptions.LilyRuntimeException;
 import lombok.extern.slf4j.Slf4j;
-import org.reflections.Reflections;
-import org.reflections.scanners.MethodAnnotationsScanner;
-import org.reflections.util.ClasspathHelper;
-import org.reflections.util.ConfigurationBuilder;
 
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Slf4j
 final class LilyAnnotationProcessor {
@@ -27,26 +30,78 @@ final class LilyAnnotationProcessor {
 
   static Map<String, Method> getAllLilyCommands(String rootPackage) {
 
-    return getAllLilyCommands(new Reflections(rootPackage).getTypesAnnotatedWith(LilyModule.class));
+    ClassLoader classLoader = LilyAnnotationProcessor.class.getClassLoader();
+
+    InputStream classList = classLoader.getResourceAsStream(rootPackage.replaceAll("\\.", "/"));
+
+    if (classList == null) {
+      return Collections.emptyMap();
+    }
+
+    try (BufferedReader classReader = new BufferedReader(
+        new InputStreamReader(classList)
+    )) {
+      List<? extends Class<?>> modules =
+          classReader.lines()
+                     .map(line -> getClass(rootPackage, line))
+                     .filter(Objects::nonNull)
+                     .filter(LilyAnnotationProcessor::isLilyModule)
+                     .toList();
+
+      return getAllLilyCommands(modules);
+    } catch (Exception e) {
+      LOGGER.error("Failed to find annotated classes", e);
+      return Collections.emptyMap();
+    }
   }
 
-  static Map<String, Method> getAllLilyCommands(Set<Class<?>> classes) {
+  private static boolean isLilyModule(Class<?> baseClass) {
+
+    try {
+      LilyModule annotation = baseClass.getAnnotation(LilyModule.class);
+      return annotation != null;
+    } catch (Exception e) {
+      return false;
+    }
+  }
+
+  private static Class<?> getClass(String packageName, String className) {
+
+    String fullClassName = packageName + "." + className.split("\\.")[0];
+
+    try {
+      return Class.forName(fullClassName);
+    } catch (Exception e) {
+      LOGGER.error("Cannot load class {}", fullClassName, e);
+      return null;
+    }
+  }
+
+  static Map<String, Method> getAllLilyCommands(Collection<? extends Class<?>> classes) {
 
     Map<String, Method> methods = new HashMap<>();
 
-    for (Class clazz : classes) {
+    for (Class<?> clazz : classes) {
 
-      Reflections reflection = new Reflections(
-          new ConfigurationBuilder()
-              .setUrls(ClasspathHelper.forClass(clazz))
-              .filterInputsBy(s -> s != null && s.startsWith(clazz.getCanonicalName()))
-              .setScanners(new MethodAnnotationsScanner()));
+      Set<Method> annotatedMethods =
+          Arrays.stream(clazz.getMethods())
+                .filter(LilyAnnotationProcessor::isLilyCommand)
+                .collect(Collectors.toSet());
 
-      Set<Method> annotatedMethods = reflection.getMethodsAnnotatedWith(LilyCommand.class);
       putAnnotatedMethods(methods, annotatedMethods);
     }
 
     return Collections.unmodifiableMap(methods);
+  }
+
+  private static boolean isLilyCommand(Method method) {
+
+    try {
+      LilyCommand command = method.getAnnotation(LilyCommand.class);
+      return command != null;
+    } catch (Exception e) {
+      return false;
+    }
   }
 
   private static void putAnnotatedMethods(Map<String, Method> methods, Set<Method> annotatedMethods) {

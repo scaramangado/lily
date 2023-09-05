@@ -20,8 +20,6 @@ dependencies {
     exclude(module = "opus-java")
   }
 
-  implementation("org.reflections:reflections:0.10.2") // Breaking change in 0.9.12
-
   lombok("1.18.28")
 
   val jUnitVersion = "5.10.0"
